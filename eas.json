@@ -1,4 +1,8 @@
 {
+
+ "cli": {
+    "appVersionSource": "local"
+  },
   "build": {
     "preview": {
       "android": {
