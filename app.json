@@ -31,6 +31,12 @@
     "scheme": "golearrn",
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f9e91e8f-9fc2-4fca-a162-f42b7dafbcc9"
+      }
+    },
+    "owner": "golearrn01"
   }
 }
