@@ -5,20 +5,20 @@ Use this checklist before preparing production builds for Android and iOS.
 ## Expo And EAS Readiness
 
 - [ ] Confirm Expo SDK version and React Native version are production-approved.
-- [ ] Add `eas.json` with development, preview, and production profiles.
+- [x] Add `eas.json` with preview APK and production AAB profiles.
 - [ ] Confirm EAS project setup and ownership.
 - [ ] Verify the app runs cleanly in Expo Go and on local device builds.
 
 ## Android Package Name
 
-- [ ] Choose and lock the final Android application ID.
-- [ ] Add the package name to Expo config.
+- [x] Add placeholder Android package name `com.golearrn.mobile` to Expo config.
+- [ ] Confirm the final Android application ID for production release.
 - [ ] Reserve any required signing configuration and Play Console setup.
 
 ## iOS Bundle Identifier
 
-- [ ] Choose and lock the final iOS bundle identifier.
-- [ ] Add the bundle identifier to Expo config.
+- [x] Add placeholder iOS bundle identifier `com.golearrn.mobile` to Expo config.
+- [ ] Confirm the final iOS bundle identifier for production release.
 - [ ] Prepare the Apple Developer app record and signing configuration.
 
 ## Environment Variables
@@ -26,6 +26,7 @@ Use this checklist before preparing production builds for Android and iOS.
 - [ ] Define development, staging, and production API base URLs.
 - [ ] Decide how Expo public env vars will be used.
 - [ ] Confirm no secrets are embedded in the client app.
+- [x] Confirm no Expo access token is committed in the client app or workflow files.
 
 ## App Icon And Splash Screen
 
@@ -71,7 +72,8 @@ Use this checklist before preparing production builds for Android and iOS.
 
 ## Deep Links And Universal Links
 
-- [ ] Define custom scheme and universal/app link domains.
+- [x] Define custom scheme placeholder `golearrn`.
+- [ ] Confirm universal/app link domains and association files.
 - [ ] Map routes for auth, QR onboarding, courses, and player screens.
 - [ ] Test cold-start and warm-start deep link behavior.
 
@@ -86,3 +88,28 @@ Use this checklist before preparing production builds for Android and iOS.
 - [ ] Confirm whether purchases stay on web for MVP.
 - [ ] Review Google Play and Apple external payment policy implications.
 - [ ] Define a compliant purchase handoff and post-purchase return flow.
+
+## Auth Storage
+
+- [x] `expo-secure-store` is installed and used for bearer token persistence.
+- [ ] Validate token restore behavior on physical devices after full app restarts.
+
+## GitHub Actions And Secrets
+
+- [x] Add GitHub Actions workflow for manual Android preview APK builds through EAS.
+- [x] Use `${{ secrets.EXPO_TOKEN }}` in GitHub Actions.
+- [ ] Add `EXPO_TOKEN` in GitHub repository secrets:
+  GitHub -> Repo -> Settings -> Secrets and variables -> Actions -> New repository secret -> `EXPO_TOKEN`
+- [x] Confirm no access token is committed to the repository.
+
+## First Internal APK Build Checklist
+
+- [ ] Add `EXPO_TOKEN` to GitHub repository secrets.
+- [ ] Run `npx tsc --noEmit`.
+- [ ] Test login, restart, `/auth/me` restore, and logout on a physical Android device through Expo Go.
+- [ ] Confirm the token is never displayed in UI and never written to logs during the physical-device auth pass.
+- [ ] Push the current branch to GitHub.
+- [ ] Manually trigger `.github/workflows/android-apk-release.yml`.
+- [ ] Open the EAS build link from the workflow output.
+- [ ] Download the generated APK from EAS.
+- [ ] Install the APK on a test Android phone.

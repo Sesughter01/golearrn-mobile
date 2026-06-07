@@ -2,6 +2,7 @@ export type RootRoute =
   | { name: 'splash' }
   | { name: 'welcome' }
   | { name: 'login' }
+  | { name: 'forgot-password' }
   | { name: 'register' }
   | { name: 'dashboard' }
   | { name: 'catalog' }
@@ -9,7 +10,7 @@ export type RootRoute =
   | { name: 'course-player'; params: { courseId: string; lessonId?: string } }
   | { name: 'profile' };
 
-export type LearnerSessionStatus = 'guest' | 'loggedInDemo';
+export type LearnerSessionStatus = 'guest' | 'bootstrapping' | 'authenticated';
 
 export type AppNavigatorValue = {
   currentRoute: RootRoute;
@@ -17,7 +18,4 @@ export type AppNavigatorValue = {
   goBack: () => void;
   navigate: (route: RootRoute) => void;
   reset: (route: RootRoute) => void;
-  sessionStatus: LearnerSessionStatus;
-  loginDemo: () => void;
-  logout: () => void;
 };

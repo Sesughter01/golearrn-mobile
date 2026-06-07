@@ -1,27 +1,39 @@
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
+import { useAppConfig } from '../context/AppConfigContext';
+import { useAuth } from '../context/AuthContext';
 import { colors, spacing } from '../constants/theme';
-import { useAppNavigation } from '../hooks/useAppNavigation';
+import { useAppNavigation } from '../navigation/navigationContext';
 
 export function SplashScreen() {
   const navigation = useAppNavigation();
+  const { appName } = useAppConfig();
+  const { status } = useAuth();
 
   useEffect(() => {
+    if (status === 'bootstrapping') {
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
-      navigation.reset({ name: 'welcome' });
-    }, 1200);
+      navigation.reset({ name: status === 'authenticated' ? 'dashboard' : 'welcome' });
+    }, 700);
 
     return () => clearTimeout(timeoutId);
-  }, [navigation]);
+  }, [navigation, status]);
 
   return (
     <View style={styles.container}>
       <View style={styles.logoMark}>
         <Text style={styles.logoText}>GO</Text>
       </View>
-      <Text style={styles.title}>GOLEARRN</Text>
-      <Text style={styles.subtitle}>Learner-first mobile learning, built for steady growth.</Text>
+      <Text style={styles.title}>{appName}</Text>
+      <Text style={styles.subtitle}>
+        {status === 'bootstrapping'
+          ? 'Restoring your learner session.'
+          : 'Learner-first mobile learning, built for steady growth.'}
+      </Text>
       <ActivityIndicator color={colors.primary} size="small" />
     </View>
   );
