@@ -1,61 +1,42 @@
-name: Android APK Release
-
-on:
-  workflow_dispatch:
-  push:
-    tags:
-      - "v*"
-
-permissions:
-  contents: write
-
-jobs:
-  build-android-preview:
-    runs-on: ubuntu-latest
-
-    env:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Setup Expo and EAS
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Build APK with EAS
-        run: |
-          npx eas-cli build -p android --profile preview --non-interactive --wait --json > eas-build.json
-          cat eas-build.json
-
-      - name: Download APK artifact
-        run: |
-          APK_URL=$(cat eas-build.json | jq -r '.[0].artifacts.buildUrl // .artifacts.buildUrl')
-          echo "APK_URL=$APK_URL"
-          curl -L "$APK_URL" -o "golearrn-mobile-${GITHUB_REF_NAME}.apk"
-
-      - name: Create GitHub Release and upload APK
-        uses: softprops/action-gh-release@v2
-        with:
-          files: golearrn-mobile-${{ github.ref_name }}.apk
-          name: GOLEARRN Mobile ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
-          body: |
-            GOLEARRN Mobile APK release.
-
-            Version: ${{ github.ref_name }}
-
-            Install the APK on an Android device for review/testing.
+{
+  "expo": {
+    "name": "golearrn-mobile",
+    "slug": "golearrn-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.golearrn.mobile"
+    },
+    "android": {
+      "package": "com.golearrn.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "golearrn",
+    "plugins": [
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f9e91e8f-9fc2-4fca-a162-f42b7dafbcc9"
+      }
+    },
+    "owner": "golearrn01"
+  }
+}
