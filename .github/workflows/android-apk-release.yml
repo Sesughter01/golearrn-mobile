@@ -36,6 +36,10 @@ jobs:
           ls -la
           cat app.json
           npx expo config --json
+      - name: Verify Expo identity
+        run: |
+          npx eas-cli whoami
+          npx eas-cli project:info
 
       - name: Trigger preview APK build
         run: npx eas-cli build -p android --profile preview --non-interactive --wait
