@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import * as Linking from 'expo-linking';
 
+import { AppHeader } from '../components/AppHeader';
 import { Badge, getTranslationTone } from '../components/Badge';
-import { InfoCard } from '../components/InfoCard';
+import { EmptyState } from '../components/EmptyState';
+import { ErrorState } from '../components/ErrorState';
+import { LoadingState } from '../components/LoadingState';
+import { PriceLabel } from '../components/PriceLabel';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenContainer } from '../components/ScreenContainer';
-import { colors, radii, spacing } from '../constants/theme';
+import { SectionHeader } from '../components/SectionHeader';
+import { COLORS, FONT_SIZES, RADIUS, SHADOWS, SPACING } from '../constants/theme';
 import { useAppNavigation } from '../navigation/navigationContext';
 import { golearrnApi } from '../services/api/golearrnApi';
 import { CourseDetails } from '../types/course';
@@ -20,18 +25,23 @@ export function CourseDetailsScreen({ courseId }: CourseDetailsScreenProps) {
   const navigation = useAppNavigation();
   const [course, setCourse] = useState<CourseDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [imageFailed, setImageFailed] = useState(false);
 
   useEffect(() => {
+    setIsLoading(true);
     golearrnApi
       .getCourseDetails(courseId)
       .then((nextCourse) => {
         setCourse(nextCourse);
         setError(null);
+        setImageFailed(false);
       })
       .catch((nextError) => {
         setCourse(null);
         setError(nextError instanceof Error ? nextError.message : 'Unable to load course details.');
-      });
+      })
+      .finally(() => setIsLoading(false));
   }, [courseId]);
 
   if (!course) {
@@ -41,24 +51,53 @@ export function CourseDetailsScreen({ courseId }: CourseDetailsScreenProps) {
         title={error ? 'Course unavailable' : 'Loading course'}
         subtitle="Live course detail now comes from the mobile API."
       >
-        <InfoCard
-          title={error ? 'API error' : 'Preparing course details'}
-          description={
-            error ??
-            'Course details, enrollment state, and lesson structure are loading from the live endpoint.'
-          }
-        />
+        {isLoading ? <LoadingState label="Loading course details..." /> : null}
+        {!isLoading && error ? (
+          <ErrorState
+            title="We couldn't load this course"
+            description={error}
+            actionLabel="Back to catalog"
+            onAction={() => navigation.reset({ name: 'catalog' })}
+          />
+        ) : null}
       </ScreenContainer>
     );
   }
+
+  const descriptionBlocks = course.description
+    .split('\n\n')
+    .map((block) => block.trim())
+    .filter(Boolean);
 
   return (
     <ScreenContainer
       eyebrow="Course"
       title={course.title}
-      subtitle="Review the course path, translation readiness, and whether this learner should continue immediately or enroll on the web."
+      subtitle="A polished overview that keeps enrollment on the web and helps learners understand what this course offers."
     >
+      <AppHeader
+        title={course.title}
+        subtitle={`Instructor: ${course.instructor}${course.category ? ` · ${course.category}` : ''}`}
+      />
       <View style={styles.heroCard}>
+        {course.thumbnailUrl ? (
+          <Image
+            source={
+              imageFailed
+                ? require('../../assets/placeholders/course-placeholder.png')
+                : { uri: course.thumbnailUrl }
+            }
+            style={styles.heroImage}
+            resizeMode="cover"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <Image
+            source={require('../../assets/placeholders/course-placeholder.png')}
+            style={styles.heroImage}
+            resizeMode="cover"
+          />
+        )}
         <View style={styles.badgeWrap}>
           <Badge label={course.level} tone="blue" />
           <Badge label={course.language} tone="slate" />
@@ -67,20 +106,53 @@ export function CourseDetailsScreen({ courseId }: CourseDetailsScreenProps) {
             tone={getTranslationTone(course.translationState)}
           />
         </View>
-        <Text style={styles.heroDescription}>{course.description}</Text>
-        <Text style={styles.heroMeta}>
-          {course.category ? `${course.category} · ` : ''}
-          {course.chapterCount ?? 'TBD'} chapters · {course.lessonCount} lessons
-        </Text>
-        <Text style={styles.heroMeta}>
-          Instructor: {course.instructor} · Price: {course.priceLabel ?? 'Enroll via Web'}
-        </Text>
+        <View style={styles.descriptionWrap}>
+          {descriptionBlocks.map((block, index) => {
+            const lines = block
+              .split('\n')
+              .map((line) => line.trim())
+              .filter(Boolean);
+            const isBulletGroup = lines.every((line) => line.startsWith('- '));
+
+            if (isBulletGroup) {
+              return (
+                <View key={`${block}-${index}`} style={styles.bulletGroup}>
+                  {lines.map((line) => (
+                    <View key={line} style={styles.bulletRow}>
+                      <View style={styles.bulletDot} />
+                      <Text style={styles.bulletText}>{line.replace(/^- /, '')}</Text>
+                    </View>
+                  ))}
+                </View>
+              );
+            }
+
+            return (
+              <Text key={`${block}-${index}`} style={styles.heroDescription}>
+                {block}
+              </Text>
+            );
+          })}
+        </View>
+        <View style={styles.metaWrap}>
+          <Text style={styles.heroMeta}>{course.lessonCount} lessons</Text>
+          <Text style={styles.heroMeta}>{course.chapterCount ?? 'TBD'} chapters</Text>
+          {course.ratingAverage ? (
+            <Text style={styles.heroMeta}>Rating {course.ratingAverage.toFixed(1)}</Text>
+          ) : null}
+        </View>
+        <PriceLabel label={course.priceLabel ?? 'Enroll via Web'} isFree={course.isFree} />
       </View>
-      <InfoCard
-        accent="soft"
-        title="What the learner needs next"
-        description="If the learner is not enrolled yet, this prototype hands them off to the web course page instead of implementing in-app payments."
+      <SectionHeader
+        title="Curriculum preview"
+        subtitle="Enrollment and payments still stay on the web. This screen focuses on helping learners understand the course before handoff."
       />
+      {!course.chapters.length ? (
+        <EmptyState
+          title="Curriculum preview is limited"
+          description="This course detail response did not include chapter data yet, so the learner still needs the web view for the full outline."
+        />
+      ) : null}
       {course.chapters.map((chapter) => (
         <View key={chapter.id} style={styles.chapterCard}>
           <Text style={styles.chapterTitle}>{chapter.title}</Text>
@@ -114,51 +186,91 @@ export function CourseDetailsScreen({ courseId }: CourseDetailsScreenProps) {
 
 const styles = StyleSheet.create({
   heroCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.sm,
+    overflow: 'hidden',
+    ...SHADOWS.card,
+  },
+  heroImage: {
+    height: 220,
+    width: '100%',
   },
   badgeWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.xs,
+    gap: SPACING.xs,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.md,
+  },
+  descriptionWrap: {
+    gap: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.md,
   },
   heroDescription: {
-    color: colors.text,
-    fontSize: 15,
-    lineHeight: 23,
+    color: COLORS.primaryText,
+    fontSize: FONT_SIZES.md,
+    lineHeight: 28,
+  },
+  bulletGroup: {
+    gap: SPACING.sm,
+  },
+  bulletRow: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  bulletDot: {
+    backgroundColor: COLORS.primaryBlue,
+    borderRadius: 999,
+    height: 8,
+    marginTop: 10,
+    width: 8,
+  },
+  bulletText: {
+    color: COLORS.primaryText,
+    flex: 1,
+    fontSize: FONT_SIZES.md,
+    lineHeight: 28,
+  },
+  metaWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
   },
   heroMeta: {
-    color: colors.primaryDark,
-    fontSize: 14,
+    color: COLORS.secondaryText,
+    fontSize: FONT_SIZES.sm,
     fontWeight: '700',
   },
   chapterCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.xs,
+    gap: SPACING.xs,
+    padding: SPACING.md,
+    ...SHADOWS.soft,
   },
   chapterTitle: {
-    color: colors.text,
-    fontSize: 17,
+    color: COLORS.primaryText,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '700',
   },
   lessonRow: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: SPACING.sm,
     justifyContent: 'space-between',
-    gap: spacing.sm,
   },
   lesson: {
-    color: colors.textMuted,
-    fontSize: 14,
-    lineHeight: 22,
+    color: COLORS.secondaryText,
     flex: 1,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: 22,
   },
 });

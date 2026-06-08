@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 
 import { Badge } from '../components/Badge';
 import { InfoCard } from '../components/InfoCard';
+import { LogoMark } from '../components/LogoMark';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { TextField } from '../components/TextField';
 import { useAuth } from '../context/AuthContext';
-import { colors, spacing } from '../constants/theme';
+import { COLORS, FONT_SIZES, SPACING } from '../constants/theme';
 import { useAppNavigation } from '../navigation/navigationContext';
+
+const authBackground = require('../../assets/backgrounds/auth-bg.png');
 
 export function RegisterScreen() {
   const navigation = useAppNavigation();
@@ -36,12 +39,21 @@ export function RegisterScreen() {
     <ScreenContainer
       eyebrow="Authentication"
       title="Create your account"
-      subtitle="Register with the live mobile API, while keeping OTP and Google mobile sign-in hidden until those contracts are ready."
+      subtitle="Start learning on GOLEARRN mobile while OTP and Google sign-in stay hidden until those native flows are ready."
     >
+      <ImageBackground source={authBackground} imageStyle={styles.heroImage} style={styles.heroCard}>
+        <View style={styles.heroOverlay}>
+          <LogoMark size="md" variant="dark" />
+          <Text style={styles.heroTitle}>Start learning with GOLEARRN</Text>
+          <Text style={styles.heroBody}>
+            Create your learner account, then continue into the live course catalog from the same mobile session.
+          </Text>
+        </View>
+      </ImageBackground>
       <InfoCard
         accent="soft"
         title="Create your learner account"
-        description="Registration now targets the live mobile auth endpoint. OTP and Google mobile sign-in still remain out of scope for this milestone."
+        description="Registration targets the live mobile auth endpoint and keeps the experience simple for learner-first onboarding."
         footer={<Badge label="OTP hidden on mobile" tone="amber" />}
       />
       <View style={styles.actions}>
@@ -100,7 +112,7 @@ export function RegisterScreen() {
           onPress={() => navigation.navigate({ name: 'login' })}
         />
         <Text style={styles.note}>
-          TODO: Confirm QR onboarding flow from `/register/scan` and whether native deep links should receive invitation parameters.
+          QR onboarding and deeper registration handoff rules still need backend support before they can be exposed here.
         </Text>
       </View>
     </ScreenContainer>
@@ -109,19 +121,43 @@ export function RegisterScreen() {
 
 const styles = StyleSheet.create({
   actions: {
-    gap: spacing.sm,
+    gap: SPACING.sm,
+  },
+  heroCard: {
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  heroImage: {
+    borderRadius: 24,
+  },
+  heroOverlay: {
+    backgroundColor: COLORS.overlayStrong,
+    gap: SPACING.sm,
+    minHeight: 190,
+    justifyContent: 'flex-end',
+    padding: SPACING.lg,
+  },
+  heroTitle: {
+    color: COLORS.white,
+    fontSize: FONT_SIZES.xl,
+    fontWeight: '800',
+  },
+  heroBody: {
+    color: COLORS.onDarkText,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: 21,
   },
   recoveryActions: {
-    gap: spacing.sm,
+    gap: SPACING.sm,
   },
   note: {
-    color: colors.textMuted,
-    fontSize: 13,
+    color: COLORS.secondaryText,
+    fontSize: FONT_SIZES.sm,
     lineHeight: 20,
   },
   error: {
-    color: colors.danger,
-    fontSize: 13,
+    color: COLORS.error,
+    fontSize: FONT_SIZES.sm,
     lineHeight: 20,
   },
 });

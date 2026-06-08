@@ -7,6 +7,7 @@ import {
   QrResolveResponse,
 } from '../../types/api';
 import { CourseDetails, CourseSummary, CourseTranslationState } from '../../types/course';
+import { htmlToPlainText } from '../../utils/html';
 import { apiRequest } from './client';
 
 export type LoginPayload = {
@@ -103,7 +104,7 @@ function mapCourseSummary(course: MobileCourseListItem): CourseSummary {
     slug: course.slug,
     title: course.title,
     instructor: course.instructor?.name ?? 'GOLEARRN Instructor',
-    description: course.short_description ?? course.description ?? 'Course details coming soon.',
+    description: htmlToPlainText(course.short_description ?? course.description) || 'Course details coming soon.',
     lessonsCount: course.lesson_count ?? 0,
     level: course.level ?? 'All Levels',
     language: course.language?.name ?? 'English',
@@ -123,7 +124,7 @@ function mapCourseDetails(course: MobileCourseDetails): CourseDetails {
 
   return {
     ...summary,
-    description: course.description ?? summary.description,
+    description: htmlToPlainText(course.description) || summary.description,
     lessonCount: course.lesson_count ?? summary.lessonsCount,
     chapterCount: course.chapter_count ?? course.chapters?.length ?? undefined,
     estimatedDuration: undefined,
@@ -131,11 +132,11 @@ function mapCourseDetails(course: MobileCourseDetails): CourseDetails {
     chapters:
       course.chapters?.map((chapter, chapterIndex) => ({
         id: String(chapter.id ?? `chapter-${chapterIndex + 1}`),
-        title: chapter.title ?? `Chapter ${chapterIndex + 1}`,
+        title: htmlToPlainText(chapter.title) || `Chapter ${chapterIndex + 1}`,
         lessons:
           chapter.lessons?.map((lesson, lessonIndex) => ({
             id: String(lesson.id ?? `lesson-${chapterIndex + 1}-${lessonIndex + 1}`),
-            title: lesson.title ?? `Lesson ${lessonIndex + 1}`,
+            title: htmlToPlainText(lesson.title) || `Lesson ${lessonIndex + 1}`,
             duration: lesson.duration ?? 'TBD',
             type:
               lesson.type === 'reading' || lesson.type === 'quiz' || lesson.type === 'video'

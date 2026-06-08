@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing } from '../constants/theme';
+import { COLORS, FONT_SIZES, LAYOUT, SPACING } from '../constants/theme';
 
 type ScreenContainerProps = {
   eyebrow?: string;
@@ -36,34 +36,37 @@ export function ScreenContainer({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: COLORS.lightBackground,
   },
   content: {
-    padding: spacing.lg,
-    gap: spacing.lg,
+    alignSelf: 'center',
+    gap: SPACING.lg,
+    maxWidth: LAYOUT.screenMaxWidth,
+    padding: SPACING.lg,
+    width: LAYOUT.contentWidth,
   },
   header: {
-    gap: spacing.xs,
-    paddingTop: spacing.md,
+    gap: SPACING.xs,
+    paddingTop: SPACING.md,
   },
   eyebrow: {
-    color: colors.primary,
-    fontSize: 13,
+    color: COLORS.primaryBlue,
+    fontSize: FONT_SIZES.xs,
     fontWeight: '700',
     letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
   title: {
-    color: colors.text,
-    fontSize: 30,
+    color: COLORS.primaryText,
+    fontSize: FONT_SIZES.xxl,
     fontWeight: '800',
   },
   subtitle: {
-    color: colors.textMuted,
-    fontSize: 16,
+    color: COLORS.secondaryText,
+    fontSize: FONT_SIZES.md,
     lineHeight: 24,
   },
   body: {
-    gap: spacing.md,
+    gap: SPACING.md,
   },
 });

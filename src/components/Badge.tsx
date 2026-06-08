@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, radii, spacing } from '../constants/theme';
+import { COLORS, FONT_SIZES, RADIUS, SPACING } from '../constants/theme';
 import { CourseTranslationState } from '../types/course';
 
 type BadgeTone = 'blue' | 'green' | 'amber' | 'red' | 'slate';
@@ -11,11 +11,11 @@ type BadgeProps = {
 };
 
 const toneStyles: Record<BadgeTone, { backgroundColor: string; color: string }> = {
-  blue: { backgroundColor: colors.primarySoft, color: colors.primaryDark },
-  green: { backgroundColor: '#DEF7E5', color: colors.success },
-  amber: { backgroundColor: '#FEEBC8', color: colors.warning },
-  red: { backgroundColor: '#FED7D7', color: colors.danger },
-  slate: { backgroundColor: '#E2E8F0', color: colors.textMuted },
+  blue: { backgroundColor: COLORS.successSoft, color: COLORS.primaryBlue },
+  green: { backgroundColor: COLORS.successSoft, color: COLORS.primaryCyan },
+  amber: { backgroundColor: COLORS.warningSoft, color: COLORS.ratingGold },
+  red: { backgroundColor: COLORS.errorSoft, color: COLORS.error },
+  slate: { backgroundColor: COLORS.navySoft, color: COLORS.secondaryText },
 };
 
 export function Badge({ label, tone = 'blue' }: BadgeProps) {
@@ -46,12 +46,12 @@ export function getTranslationTone(state: CourseTranslationState): BadgeTone {
 const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.sm,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: SPACING.sm,
     paddingVertical: 6,
   },
   label: {
-    fontSize: 12,
+    fontSize: FONT_SIZES.xs,
     fontWeight: '700',
   },
 });

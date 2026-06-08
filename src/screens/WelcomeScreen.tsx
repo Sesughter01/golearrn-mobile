@@ -1,12 +1,16 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 
 import { Badge } from '../components/Badge';
 import { InfoCard } from '../components/InfoCard';
+import { LogoMark } from '../components/LogoMark';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenContainer } from '../components/ScreenContainer';
+import { SectionHeader } from '../components/SectionHeader';
 import { useAppConfig } from '../context/AppConfigContext';
-import { colors, radii, spacing } from '../constants/theme';
+import { COLORS, FONT_SIZES, RADIUS, SHADOWS, SPACING } from '../constants/theme';
 import { useAppNavigation } from '../navigation/navigationContext';
+
+const authBackground = require('../../assets/backgrounds/auth-bg.png');
 
 export function WelcomeScreen() {
   const navigation = useAppNavigation();
@@ -16,15 +20,22 @@ export function WelcomeScreen() {
     <ScreenContainer
       eyebrow="Welcome"
       title={`Learn with ${appName}`}
-      subtitle="Start with a practical mobile foundation for discovering courses, joining classes, and continuing lessons on the go."
+      subtitle="A cleaner learner-first mobile experience for practical courses, career skills, and flexible learning on the go."
     >
-      <View style={styles.heroCard}>
-        <Badge label="Learner MVP" tone="blue" />
-        <Text style={styles.heroTitle}>Learn skills you can use right away</Text>
-        <Text style={styles.heroBody}>
-          Discover courses, keep up with lessons, and prepare for multilingual learning support while the Laravel mobile contracts are finalized.
-        </Text>
-      </View>
+      <ImageBackground source={authBackground} imageStyle={styles.heroImage} style={styles.heroCard}>
+        <View style={styles.heroOverlay}>
+          <LogoMark size="md" variant="dark" />
+          <Badge label="Learner-first mobile" tone="blue" />
+          <Text style={styles.heroTitle}>Learn. Upskill. Grow.</Text>
+          <Text style={styles.heroBody}>
+            Explore career-focused courses, keep learning on your phone, and stay close to the skills that move your work forward.
+          </Text>
+        </View>
+      </ImageBackground>
+      <SectionHeader
+        title="Why GOLEARRN on mobile?"
+        subtitle="Keep the experience practical, polished, and honest while deeper learner APIs continue to mature."
+      />
       <InfoCard
         accent="soft"
         title="Built for mobile-first learners"
@@ -54,22 +65,31 @@ export function WelcomeScreen() {
 
 const styles = StyleSheet.create({
   heroCard: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.lg,
-    padding: spacing.lg,
-    gap: spacing.sm,
+    borderRadius: RADIUS.lg,
+    overflow: 'hidden',
+    ...SHADOWS.card,
+  },
+  heroImage: {
+    borderRadius: RADIUS.lg,
+  },
+  heroOverlay: {
+    backgroundColor: COLORS.overlayStrong,
+    gap: SPACING.sm,
+    minHeight: 280,
+    justifyContent: 'flex-end',
+    padding: SPACING.lg,
   },
   actionGroup: {
-    gap: spacing.sm,
+    gap: SPACING.sm,
   },
   heroTitle: {
-    color: colors.surface,
-    fontSize: 26,
+    color: COLORS.white,
+    fontSize: FONT_SIZES.hero,
     fontWeight: '800',
   },
   heroBody: {
-    color: '#DCEBFF',
-    fontSize: 15,
-    lineHeight: 22,
+    color: COLORS.onDarkText,
+    fontSize: FONT_SIZES.md,
+    lineHeight: 24,
   },
 });

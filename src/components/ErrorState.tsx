@@ -1,26 +1,24 @@
-import { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { COLORS, FONT_SIZES, RADIUS, SHADOWS, SPACING } from '../constants/theme';
+import { PrimaryButton } from './PrimaryButton';
 
-type InfoCardProps = {
-  title: string;
-  description: string;
-  footer?: ReactNode;
-  accent?: 'default' | 'soft';
-};
-
-export function InfoCard({
+export function ErrorState({
   title,
   description,
-  footer,
-  accent = 'default',
-}: InfoCardProps) {
+  actionLabel,
+  onAction,
+}: {
+  title: string;
+  description: string;
+  actionLabel: string;
+  onAction: () => void;
+}) {
   return (
-    <View style={[styles.card, accent === 'soft' && styles.softCard]}>
+    <View style={styles.card}>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
-      {footer ? <View style={styles.footer}>{footer}</View> : null}
+      <PrimaryButton label={actionLabel} onPress={onAction} />
     </View>
   );
 }
@@ -28,28 +26,21 @@ export function InfoCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.error,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: SPACING.md,
     gap: SPACING.sm,
+    padding: SPACING.md,
     ...SHADOWS.soft,
-  },
-  softCard: {
-    backgroundColor: COLORS.navySoft,
-    borderColor: COLORS.borderStrong,
   },
   title: {
     color: COLORS.primaryText,
     fontSize: FONT_SIZES.lg,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   description: {
     color: COLORS.secondaryText,
     fontSize: FONT_SIZES.sm,
     lineHeight: 21,
-  },
-  footer: {
-    marginTop: SPACING.xs,
   },
 });

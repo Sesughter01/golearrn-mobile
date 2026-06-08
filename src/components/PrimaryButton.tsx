@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { colors, radii, spacing } from '../constants/theme';
+import { COLORS, FONT_SIZES, LAYOUT, RADIUS, SPACING } from '../constants/theme';
 
 type PrimaryButtonProps = {
   label: string;
@@ -35,32 +35,32 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: radii.pill,
-    minHeight: 52,
+    borderRadius: RADIUS.pill,
+    minHeight: LAYOUT.touchTarget,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: SPACING.lg,
   },
   fullWidth: {
     width: '100%',
   },
   primaryButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: COLORS.primaryBlue,
   },
   secondaryButton: {
-    backgroundColor: colors.surface,
+    backgroundColor: COLORS.cardBackground,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: COLORS.borderStrong,
   },
   buttonPressed: {
-    opacity: 0.88,
+    opacity: 0.9,
   },
   label: {
-    color: colors.surface,
-    fontSize: 16,
+    color: COLORS.white,
+    fontSize: FONT_SIZES.md,
     fontWeight: '700',
   },
   secondaryLabel: {
-    color: colors.primaryDark,
+    color: COLORS.primaryBlue,
   },
 });

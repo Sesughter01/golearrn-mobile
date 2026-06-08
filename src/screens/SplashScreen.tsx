@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 
+import { LogoMark } from '../components/LogoMark';
 import { useAppConfig } from '../context/AppConfigContext';
 import { useAuth } from '../context/AuthContext';
-import { colors, spacing } from '../constants/theme';
+import { COLORS, FONT_SIZES, SPACING } from '../constants/theme';
 import { useAppNavigation } from '../navigation/navigationContext';
+
+const splashArt = require('../../assets/app/splash.png');
 
 export function SplashScreen() {
   const navigation = useAppNavigation();
@@ -25,50 +28,39 @@ export function SplashScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.logoMark}>
-        <Text style={styles.logoText}>GO</Text>
-      </View>
-      <Text style={styles.title}>{appName}</Text>
+      <Image source={splashArt} style={styles.splashImage} resizeMode="contain" />
+      <LogoMark variant="dark" size="md" />
+      <Text style={styles.appName}>{appName}</Text>
       <Text style={styles.subtitle}>
-        {status === 'bootstrapping'
-          ? 'Restoring your learner session.'
-          : 'Learner-first mobile learning, built for steady growth.'}
+        {status === 'bootstrapping' ? 'Restoring your learner session.' : 'Learn. Upskill. Grow.'}
       </Text>
-      <ActivityIndicator color={colors.primary} size="small" />
+      <ActivityIndicator color={COLORS.primaryCyan} size="small" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    alignItems: 'center',
+    backgroundColor: COLORS.darkNavy,
     flex: 1,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
+    gap: SPACING.md,
     justifyContent: 'center',
-    padding: spacing.xl,
-    gap: spacing.md,
+    padding: SPACING.xl,
   },
-  logoMark: {
-    width: 86,
-    height: 86,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+  splashImage: {
+    height: 144,
+    width: 144,
   },
-  logoText: {
-    color: colors.surface,
-    fontSize: 30,
+  appName: {
+    color: COLORS.white,
+    fontSize: FONT_SIZES.xl,
     fontWeight: '800',
-  },
-  title: {
-    color: colors.primaryDark,
-    fontSize: 34,
-    fontWeight: '800',
+    letterSpacing: 0.6,
   },
   subtitle: {
-    color: colors.textMuted,
-    fontSize: 16,
+    color: COLORS.onDarkMuted,
+    fontSize: FONT_SIZES.md,
     lineHeight: 24,
     textAlign: 'center',
   },

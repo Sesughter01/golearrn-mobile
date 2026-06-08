@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { colors, radii, spacing } from '../constants/theme';
+import { COLORS, FONT_SIZES, LAYOUT, RADIUS, SPACING } from '../constants/theme';
 
 type TextFieldProps = {
   label: string;
@@ -29,7 +29,7 @@ export function TextField({
         keyboardType={keyboardType}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={COLORS.secondaryText}
         secureTextEntry={secureTextEntry}
         style={styles.input}
         value={value}
@@ -40,22 +40,22 @@ export function TextField({
 
 const styles = StyleSheet.create({
   wrapper: {
-    gap: spacing.xs,
+    gap: SPACING.xs,
   },
   label: {
-    color: colors.text,
-    fontSize: 14,
+    color: COLORS.primaryText,
+    fontSize: FONT_SIZES.sm,
     fontWeight: '700',
   },
   input: {
-    backgroundColor: colors.surface,
-    borderColor: colors.borderStrong,
-    borderRadius: radii.md,
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.borderStrong,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
-    color: colors.text,
-    fontSize: 15,
-    minHeight: 52,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    color: COLORS.primaryText,
+    fontSize: FONT_SIZES.md,
+    minHeight: LAYOUT.touchTarget,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
   },
 });

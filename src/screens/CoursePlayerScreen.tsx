@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { AppHeader } from '../components/AppHeader';
 import { Badge, getTranslationTone } from '../components/Badge';
+import { EmptyState } from '../components/EmptyState';
 import { InfoCard } from '../components/InfoCard';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenContainer } from '../components/ScreenContainer';
-import { colors, radii, spacing } from '../constants/theme';
+import { COLORS, FONT_SIZES, RADIUS, SHADOWS, SPACING } from '../constants/theme';
 import { useAppNavigation } from '../navigation/navigationContext';
 import { golearrnApi } from '../services/api/golearrnApi';
 import { CourseDetails } from '../types/course';
@@ -53,8 +55,12 @@ export function CoursePlayerScreen({
     <ScreenContainer
       eyebrow="Player"
       title={course?.title ?? 'Course player'}
-      subtitle="This learner-first prototype focuses on current lesson context, chapter visibility, translation status, and a lightweight progress action."
+      subtitle="A cleaner lesson surface that stays honest about what is and is not yet live from the GOLEARRN backend."
     >
+      <AppHeader
+        title={course?.title ?? 'Course player'}
+        subtitle="Lesson playback and real learner progress still need dedicated backend/player endpoints."
+      />
       <View style={styles.playerSurface}>
         <Badge
           label={`Translation: ${course?.translationState ?? 'pending'}`}
@@ -64,13 +70,20 @@ export function CoursePlayerScreen({
         <Text style={styles.playerMeta}>
           {currentLesson ? `${currentLesson.type} · ${currentLesson.duration}` : `Course ID: ${courseId}`}
         </Text>
-        <Text style={styles.playerProgress}>Progress: {progressPercent}% complete</Text>
+        <Text style={styles.playerProgress}>Demo progress only: {progressPercent}% complete</Text>
       </View>
       <InfoCard
         accent="soft"
         title="Player backend dependencies"
         description="We still need secure media URLs, real progress write-back, quiz launch behavior, translation polling, and lesson completion rules from Laravel."
       />
+      {!course?.chapters.length ? (
+        <EmptyState
+          title="Lesson structure is limited"
+          description="This prototype cannot show a full curriculum until the backend returns richer player and chapter data."
+          imageSource={require('../../assets/placeholders/empty-courses.png')}
+        />
+      ) : null}
       {course?.chapters.map((chapter) => (
         <View key={chapter.id} style={styles.chapterCard}>
           <Text style={styles.chapterTitle}>{chapter.title}</Text>
@@ -85,6 +98,7 @@ export function CoursePlayerScreen({
       <PrimaryButton label="Mark demo progress only" onPress={handleMarkProgress} />
       <PrimaryButton
         label="Back to dashboard"
+        variant="secondary"
         onPress={() => navigation.reset({ name: 'dashboard' })}
       />
     </ScreenContainer>
@@ -93,43 +107,45 @@ export function CoursePlayerScreen({
 
 const styles = StyleSheet.create({
   playerSurface: {
-    backgroundColor: colors.primaryDark,
-    borderRadius: radii.lg,
-    minHeight: 240,
-    padding: spacing.lg,
+    backgroundColor: COLORS.darkNavy,
+    borderRadius: RADIUS.lg,
+    gap: SPACING.sm,
     justifyContent: 'flex-end',
-    gap: spacing.sm,
+    minHeight: 240,
+    padding: SPACING.lg,
+    ...SHADOWS.card,
   },
   playerTitle: {
-    color: colors.surface,
-    fontSize: 22,
+    color: COLORS.white,
+    fontSize: FONT_SIZES.xl,
     fontWeight: '800',
   },
   playerMeta: {
-    color: '#DCEBFF',
-    fontSize: 14,
+    color: COLORS.onDarkText,
+    fontSize: FONT_SIZES.sm,
   },
   playerProgress: {
-    color: colors.surface,
-    fontSize: 14,
+    color: COLORS.white,
+    fontSize: FONT_SIZES.sm,
     fontWeight: '700',
   },
   chapterCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.xs,
+    gap: SPACING.xs,
+    padding: SPACING.md,
+    ...SHADOWS.soft,
   },
   chapterTitle: {
-    color: colors.text,
-    fontSize: 17,
+    color: COLORS.primaryText,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '700',
   },
   lessonItem: {
-    color: colors.textMuted,
-    fontSize: 14,
+    color: COLORS.secondaryText,
+    fontSize: FONT_SIZES.sm,
     lineHeight: 21,
   },
 });

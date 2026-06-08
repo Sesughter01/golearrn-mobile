@@ -30,9 +30,23 @@ Use this checklist before preparing production builds for Android and iOS.
 
 ## App Icon And Splash Screen
 
-- [ ] Replace scaffold icons with GOLEARRN production branding.
-- [ ] Replace placeholder splash assets and confirm safe padding on both platforms.
+- [x] Replace scaffold icons with GOLEARRN production branding.
+- [x] Replace placeholder splash assets and confirm safe padding on both platforms.
 - [ ] Test icon and splash rendering on multiple device sizes.
+
+## GOLEARRN Branded Assets
+
+- App assets now live under `assets/app/`:
+  `icon.png`, `adaptive-icon.png`, `splash.png`, `favicon.png`
+- Logo assets now live under `assets/logo/`
+- Background and hero artwork now live under `assets/backgrounds/` and `assets/branding/`
+- Placeholder assets now live under `assets/placeholders/`
+- `app.json` now points to:
+  - `./assets/app/icon.png`
+  - `./assets/app/splash.png`
+  - `./assets/app/adaptive-icon.png`
+  - `./assets/app/favicon.png`
+- A new EAS build is required before icon and splash changes appear in a generated APK.
 
 ## Google Play Store Assets
 

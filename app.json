@@ -4,13 +4,13 @@
     "slug": "golearrn-mobile",
     "version": "0.1.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/app/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/app/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#101C2C"
     },
     "ios": {
       "supportsTablet": true,
@@ -19,14 +19,14 @@
     "android": {
       "package": "com.golearrn.mobile",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/app/adaptive-icon.png",
+        "backgroundColor": "#101C2C"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/app/favicon.png"
     },
     "scheme": "golearrn",
     "plugins": [

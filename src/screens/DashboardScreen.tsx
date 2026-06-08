@@ -1,121 +1,163 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 
-import { Badge, getTranslationTone } from '../components/Badge';
-import { InfoCard } from '../components/InfoCard';
+import { AppHeader } from '../components/AppHeader';
+import { CourseCard } from '../components/CourseCard';
+import { EmptyState } from '../components/EmptyState';
+import { ErrorState } from '../components/ErrorState';
+import { LoadingState } from '../components/LoadingState';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenContainer } from '../components/ScreenContainer';
+import { SectionHeader } from '../components/SectionHeader';
 import { useAuth } from '../context/AuthContext';
-import { colors, radii, spacing } from '../constants/theme';
+import { COLORS, FONT_SIZES, SPACING } from '../constants/theme';
 import { useAppNavigation } from '../navigation/navigationContext';
 import { golearrnApi } from '../services/api/golearrnApi';
 import { CourseSummary } from '../types/course';
+
+const dashboardBackground = require('../../assets/backgrounds/dashboard-bg.png');
 
 export function DashboardScreen() {
   const navigation = useAppNavigation();
   const { user } = useAuth();
   const [enrolledCourses, setEnrolledCourses] = useState<CourseSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  async function loadCourses() {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const courses = await golearrnApi.fetchEnrolledCourses();
+      setEnrolledCourses(courses);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Unable to load courses.');
+      setEnrolledCourses([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   useEffect(() => {
-    golearrnApi
-      .fetchEnrolledCourses()
-      .then(setEnrolledCourses)
-      .catch((nextError) => {
-        setError(nextError instanceof Error ? nextError.message : 'Unable to load courses.');
-        setEnrolledCourses([]);
-      });
+    loadCourses();
   }, []);
+
+  const featuredCourse = enrolledCourses[0];
 
   return (
     <ScreenContainer
       eyebrow="Learner Home"
       title="Your learning dashboard"
-      subtitle="Pick up where you left off, watch translation readiness, and keep your momentum moving from lesson to lesson."
+      subtitle="A cleaner learner-first home for continuing lessons and exploring live GOLEARRN courses."
     >
-      <InfoCard
-        accent="soft"
-        title="Today’s learner focus"
-        description={
-          user
-            ? `Welcome back, ${user.name}. This dashboard uses live catalog data for now while the dedicated learner dashboard API is still pending.`
-            : 'Your learner session is active, but user profile details could not be loaded.'
-        }
+      <AppHeader
+        title={user ? `Welcome back, ${user.name}` : 'Welcome back'}
+        subtitle="GOLEARRN keeps your learning close, even while the dedicated learner dashboard API is still pending."
       />
-      {error ? <Text style={styles.note}>{error}</Text> : null}
-      {enrolledCourses.map((course) => (
-        <View key={course.id} style={styles.courseSpotlight}>
-          <View style={styles.courseHeader}>
-            <Text style={styles.courseTitle}>{course.title}</Text>
-            <Badge
-              label={`Translation: ${course.translationState}`}
-              tone={getTranslationTone(course.translationState)}
-            />
-          </View>
-          <Text style={styles.courseMeta}>
-            {course.instructor} · {course.level} · {course.language}
+      <ImageBackground
+        source={dashboardBackground}
+        imageStyle={styles.heroImage}
+        style={styles.heroCard}
+      >
+        <View style={styles.heroOverlay}>
+          <Text style={styles.heroEyebrow}>Internal release preview</Text>
+          <Text style={styles.heroTitle}>Your next course is one tap away.</Text>
+          <Text style={styles.heroBody}>
+            This hero uses the official GOLEARRN asset pack while learner-specific recommendations and live progress APIs are still pending.
           </Text>
-          <Text style={styles.courseProgress}>
-            Demo progress placeholder: {course.progressPercent ?? 0}% complete
-          </Text>
-          <PrimaryButton
-            label="Continue learning"
-            onPress={() =>
-              navigation.navigate({ name: 'course-details', params: { courseId: course.slug } })
-            }
-          />
         </View>
-      ))}
-      <View style={styles.grid}>
+      </ImageBackground>
+      <SectionHeader
+        title="Continue learning"
+        subtitle="This section stays honest about what is live today versus what still needs backend support."
+      />
+      {isLoading ? <LoadingState label="Preparing your learning overview..." /> : null}
+      {!isLoading && error ? (
+        <ErrorState
+          title="We couldn't load your learner view"
+          description={error}
+          actionLabel="Retry"
+          onAction={loadCourses}
+        />
+      ) : null}
+      {!isLoading && !error && featuredCourse ? (
+        <CourseCard
+          course={featuredCourse}
+          onPress={() =>
+            navigation.navigate({ name: 'course-details', params: { courseId: featuredCourse.slug } })
+          }
+        />
+      ) : null}
+      {!isLoading && !error && !featuredCourse ? (
+        <EmptyState
+          title="Your enrolled learning feed is still limited"
+          description="The dedicated learner dashboard and enrolled-course APIs are still pending, so this screen falls back to public course data where possible."
+          imageSource={require('../../assets/placeholders/empty-courses.png')}
+          actionLabel="Explore courses"
+          onAction={() => navigation.navigate({ name: 'catalog' })}
+        />
+      ) : null}
+      <SectionHeader
+        title="Keep learning"
+        subtitle="Browse the live catalog while richer learner-specific recommendations are still pending."
+      />
+      <View style={styles.actionRow}>
         <PrimaryButton
-          label="Browse catalog"
+          label="Explore courses"
           onPress={() => navigation.navigate({ name: 'catalog' })}
         />
         <PrimaryButton
-          label="Profile & settings"
+          label="View profile"
           variant="secondary"
           onPress={() => navigation.navigate({ name: 'profile' })}
         />
       </View>
       <Text style={styles.note}>
-        TODO: Full learner dashboard, enrolled-course progress, recommendations, and notifications still require dedicated backend endpoints.
+        Full learner dashboard, live progress, recommendations, and notifications still require dedicated backend endpoints.
       </Text>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  grid: {
-    gap: spacing.sm,
+  actionRow: {
+    gap: SPACING.sm,
   },
-  courseSpotlight: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.sm,
+  heroCard: {
+    borderRadius: 24,
+    overflow: 'hidden',
   },
-  courseHeader: {
-    gap: spacing.xs,
+  heroImage: {
+    borderRadius: 24,
   },
-  courseTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '700',
+  heroOverlay: {
+    backgroundColor: COLORS.overlayStrong,
+    gap: SPACING.sm,
+    minHeight: 220,
+    justifyContent: 'flex-end',
+    padding: SPACING.lg,
   },
-  courseMeta: {
-    color: colors.textMuted,
-    fontSize: 14,
+  heroEyebrow: {
+    color: COLORS.primaryCyan,
+    fontSize: FONT_SIZES.xs,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
-  courseProgress: {
-    color: colors.primaryDark,
-    fontSize: 14,
-    fontWeight: '700',
+  heroTitle: {
+    color: COLORS.white,
+    fontSize: FONT_SIZES.xxl,
+    fontWeight: '800',
+  },
+  heroBody: {
+    color: COLORS.onDarkText,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: 22,
   },
   note: {
-    color: colors.textMuted,
-    fontSize: 13,
-    lineHeight: 20,
+    color: COLORS.secondaryText,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: 21,
   },
 });

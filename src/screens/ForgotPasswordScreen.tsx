@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 
 import { InfoCard } from '../components/InfoCard';
+import { LogoMark } from '../components/LogoMark';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { TextField } from '../components/TextField';
-import { colors, spacing } from '../constants/theme';
-import { useAppNavigation } from '../navigation/navigationContext';
 import { ApiError } from '../services/api/client';
 import { golearrnApi } from '../services/api/golearrnApi';
+import { COLORS, FONT_SIZES, SPACING } from '../constants/theme';
+import { useAppNavigation } from '../navigation/navigationContext';
+
+const authBackground = require('../../assets/backgrounds/auth-bg.png');
 
 export function ForgotPasswordScreen() {
   const navigation = useAppNavigation();
@@ -43,6 +46,15 @@ export function ForgotPasswordScreen() {
       title="Forgot your password?"
       subtitle="Set a password for mobile access if your GOLEARRN account already exists on the web."
     >
+      <ImageBackground source={authBackground} imageStyle={styles.heroImage} style={styles.heroCard}>
+        <View style={styles.heroOverlay}>
+          <LogoMark size="md" variant="dark" />
+          <Text style={styles.heroTitle}>Reset mobile access</Text>
+          <Text style={styles.heroBody}>
+            Use the same GOLEARRN account email and we&apos;ll hand off reset instructions if the account exists.
+          </Text>
+        </View>
+      </ImageBackground>
       <InfoCard
         accent="soft"
         title="Existing web accounts are supported"
@@ -75,16 +87,40 @@ export function ForgotPasswordScreen() {
 
 const styles = StyleSheet.create({
   actions: {
-    gap: spacing.sm,
+    gap: SPACING.sm,
+  },
+  heroCard: {
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  heroImage: {
+    borderRadius: 24,
+  },
+  heroOverlay: {
+    backgroundColor: COLORS.overlayStrong,
+    gap: SPACING.sm,
+    minHeight: 190,
+    justifyContent: 'flex-end',
+    padding: SPACING.lg,
+  },
+  heroTitle: {
+    color: COLORS.white,
+    fontSize: FONT_SIZES.xl,
+    fontWeight: '800',
+  },
+  heroBody: {
+    color: COLORS.onDarkText,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: 21,
   },
   error: {
-    color: colors.danger,
-    fontSize: 13,
+    color: COLORS.error,
+    fontSize: FONT_SIZES.sm,
     lineHeight: 20,
   },
   success: {
-    color: colors.success,
-    fontSize: 13,
+    color: COLORS.primaryCyan,
+    fontSize: FONT_SIZES.sm,
     lineHeight: 20,
   },
 });

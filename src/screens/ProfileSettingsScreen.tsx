@@ -1,12 +1,14 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
+import { AppHeader } from '../components/AppHeader';
 import { Badge } from '../components/Badge';
 import { InfoCard } from '../components/InfoCard';
+import { LogoMark } from '../components/LogoMark';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { useAppConfig } from '../context/AppConfigContext';
 import { useAuth } from '../context/AuthContext';
-import { colors, spacing } from '../constants/theme';
+import { COLORS, FONT_SIZES, SPACING } from '../constants/theme';
 import { useAppNavigation } from '../navigation/navigationContext';
 
 export function ProfileSettingsScreen() {
@@ -23,8 +25,12 @@ export function ProfileSettingsScreen() {
     <ScreenContainer
       eyebrow="Profile"
       title="Profile and settings"
-      subtitle="Review the current learner mode, prepare for future account controls, and return safely to guest mode when you are done."
+      subtitle="Account basics, support links, app details, and a simple learner-safe logout flow."
     >
+      <AppHeader
+        title="Your GOLEARRN profile"
+        subtitle="Clean learner settings for this first internal release."
+      />
       <InfoCard
         accent="soft"
         title="Current learner mode"
@@ -40,9 +46,17 @@ export function ProfileSettingsScreen() {
           />
         }
       />
+      <View style={styles.identityRow}>
+        <Image
+          source={require('../../assets/placeholders/avatar-placeholder.png')}
+          style={styles.avatar}
+          resizeMode="cover"
+        />
+        <LogoMark size="sm" showWordmark={false} />
+      </View>
       <InfoCard
-        title="Support and policies"
-        description={`Privacy: ${config?.privacy_policy_url ?? 'Pending from /app/config'}\nTerms: ${config?.terms_url ?? 'Pending from /app/config'}\nSupport: ${config?.support_email ?? config?.support_url ?? 'Pending from /app/config'}`}
+        title="Support and app links"
+        description={`Privacy: ${config?.privacy_policy_url ?? 'Pending from /app/config'}\nTerms: ${config?.terms_url ?? 'Pending from /app/config'}\nSupport: ${config?.support_email ?? config?.support_url ?? 'Pending from /app/config'}\nApp version: 0.1.0`}
       />
       <View style={styles.actionGroup}>
         {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -53,7 +67,7 @@ export function ProfileSettingsScreen() {
         />
       </View>
       <Text style={styles.note}>
-        TODO: Confirm how mobile should handle account deletion, logout, device sessions, and notification opt-ins.
+        Account deletion, device session controls, and notification preferences still depend on backend support.
       </Text>
     </ScreenContainer>
   );
@@ -61,16 +75,26 @@ export function ProfileSettingsScreen() {
 
 const styles = StyleSheet.create({
   actionGroup: {
-    gap: spacing.sm,
+    gap: SPACING.sm,
+  },
+  identityRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: SPACING.md,
+  },
+  avatar: {
+    borderRadius: 28,
+    height: 56,
+    width: 56,
   },
   note: {
-    color: colors.textMuted,
-    fontSize: 13,
+    color: COLORS.secondaryText,
+    fontSize: FONT_SIZES.sm,
     lineHeight: 20,
   },
   error: {
-    color: colors.danger,
-    fontSize: 13,
+    color: COLORS.error,
+    fontSize: FONT_SIZES.sm,
     lineHeight: 20,
   },
 });

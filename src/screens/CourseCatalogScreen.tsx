@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 
-import { Badge, getTranslationTone } from '../components/Badge';
-import { InfoCard } from '../components/InfoCard';
-import { PrimaryButton } from '../components/PrimaryButton';
+import { AppHeader } from '../components/AppHeader';
+import { CourseCard } from '../components/CourseCard';
+import { EmptyState } from '../components/EmptyState';
+import { ErrorState } from '../components/ErrorState';
+import { LoadingState } from '../components/LoadingState';
 import { ScreenContainer } from '../components/ScreenContainer';
-import { colors, radii, spacing } from '../constants/theme';
+import { SectionHeader } from '../components/SectionHeader';
+import { COLORS, FONT_SIZES, RADIUS, SPACING } from '../constants/theme';
 import { useAppNavigation } from '../navigation/navigationContext';
 import { golearrnApi } from '../services/api/golearrnApi';
 import { CourseSummary } from '../types/course';
@@ -15,6 +18,7 @@ export function CourseCatalogScreen() {
   const [courses, setCourses] = useState<CourseSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
 
   async function loadCourses() {
     setIsLoading(true);
@@ -35,121 +39,90 @@ export function CourseCatalogScreen() {
     loadCourses();
   }, []);
 
+  const filteredCourses = query
+    ? courses.filter((course) => {
+        const normalized = query.toLowerCase();
+        return (
+          course.title.toLowerCase().includes(normalized) ||
+          course.instructor.toLowerCase().includes(normalized) ||
+          course.category?.toLowerCase().includes(normalized)
+        );
+      })
+    : courses;
+
   return (
     <ScreenContainer
       eyebrow="Catalog"
       title="Discover your next course"
-      subtitle="Browse learner-ready programs, track translation availability, and see which courses are already active in your study path."
+      subtitle="A cleaner GOLEARRN learning catalog with live course data, clearer badges, and a more learner-friendly browsing flow."
     >
-      <InfoCard
-        accent="soft"
-        title="Live course catalog"
-        description="This screen now loads from the live `/courses` mobile endpoint. Search, filters, and richer enrollment states can be layered on next."
+      <AppHeader
+        title="Explore GOLEARRN courses"
+        subtitle="Browse live catalog results, then continue to course details for the full overview."
       />
-      {isLoading ? <Text style={styles.stateText}>Loading courses...</Text> : null}
+      <View style={styles.searchShell}>
+        <TextInput
+          onChangeText={setQuery}
+          placeholder="Search courses, instructors, or categories"
+          placeholderTextColor={COLORS.secondaryText}
+          style={styles.searchInput}
+          value={query}
+        />
+      </View>
+      <SectionHeader
+        title="Live catalog"
+        subtitle="Search is local on the currently loaded catalog for now. Dedicated server search can be layered into this screen next."
+      />
+      {isLoading ? <LoadingState label="Loading course catalog..." /> : null}
       {!isLoading && error ? (
-        <View style={styles.stateBlock}>
-          <Text style={styles.stateText}>{error}</Text>
-          <PrimaryButton label="Retry" onPress={loadCourses} />
-        </View>
+        <ErrorState
+          title="We couldn't load the catalog"
+          description={error}
+          actionLabel="Retry"
+          onAction={loadCourses}
+        />
       ) : null}
       {!isLoading && !error && courses.length === 0 ? (
-        <View style={styles.stateBlock}>
-          <Text style={styles.stateText}>No courses are available yet.</Text>
-          <PrimaryButton label="Refresh" onPress={loadCourses} />
-        </View>
+        <EmptyState
+          title="No courses are available yet"
+          description="The live catalog returned no courses right now. Try refreshing again shortly."
+          imageSource={require('../../assets/placeholders/empty-courses.png')}
+          actionLabel="Refresh"
+          onAction={loadCourses}
+        />
       ) : null}
-      {courses.map((course) => (
-        <Pressable
+      {!isLoading && !error && filteredCourses.length === 0 ? (
+        <EmptyState
+          title="No matching courses found"
+          description="Try a different search term or clear the search field to see the full course list."
+          imageSource={require('../../assets/placeholders/empty-search.png')}
+        />
+      ) : null}
+      {filteredCourses.map((course) => (
+        <CourseCard
           key={course.id}
+          course={course}
           onPress={() =>
             navigation.navigate({ name: 'course-details', params: { courseId: course.slug } })
           }
-          style={({ pressed }) => [styles.courseCard, pressed && styles.courseCardPressed]}
-        >
-          <View style={styles.titleRow}>
-            <Text style={styles.courseTitle}>{course.title}</Text>
-            {course.enrolled ? <Badge label="Enrolled" tone="green" /> : null}
-          </View>
-          <Text style={styles.courseMeta}>{course.instructor}</Text>
-          <Text style={styles.courseDescription}>{course.description}</Text>
-          <View style={styles.metaGrid}>
-            <Text style={styles.metaItem}>{course.lessonsCount} lessons</Text>
-            <Text style={styles.metaItem}>{course.level}</Text>
-            <Text style={styles.metaItem}>{course.language}</Text>
-            {course.category ? <Text style={styles.metaItem}>{course.category}</Text> : null}
-          </View>
-          <View style={styles.badgeRow}>
-            <Badge
-              label={`Translation: ${course.translationState}`}
-              tone={getTranslationTone(course.translationState)}
-            />
-            {course.enrolled ? (
-              <Badge label={`Progress: ${course.progressPercent ?? 0}%`} tone="blue" />
-            ) : null}
-            <Badge label={course.priceLabel ?? 'Enroll via Web'} tone="slate" />
-          </View>
-        </Pressable>
+        />
       ))}
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  courseCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
+  searchShell: {
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.xs,
+    padding: SPACING.xs,
   },
-  courseCardPressed: {
-    opacity: 0.9,
-  },
-  courseTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '700',
-    flex: 1,
-  },
-  courseMeta: {
-    color: colors.primary,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
-  },
-  courseDescription: {
-    color: colors.textMuted,
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  metaGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  metaItem: {
-    color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-    marginTop: spacing.xs,
-  },
-  stateBlock: {
-    gap: spacing.sm,
-  },
-  stateText: {
-    color: colors.textMuted,
-    fontSize: 14,
-    lineHeight: 21,
+  searchInput: {
+    color: COLORS.primaryText,
+    fontSize: FONT_SIZES.md,
+    minHeight: 52,
+    paddingHorizontal: SPACING.md,
   },
 });

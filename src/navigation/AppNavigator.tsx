@@ -1,12 +1,9 @@
 import { ReactNode, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing } from '../constants/theme';
-import { AppNavigatorValue, RootRoute } from '../types/navigation';
+import { COLORS, FONT_SIZES, RADIUS, SHADOWS, SPACING } from '../constants/theme';
 import { useAppConfig } from '../context/AppConfigContext';
 import { useAuth } from '../context/AuthContext';
-import { NavigationContext } from './navigationContext';
-
 import { CourseCatalogScreen } from '../screens/CourseCatalogScreen';
 import { CourseDetailsScreen } from '../screens/CourseDetailsScreen';
 import { CoursePlayerScreen } from '../screens/CoursePlayerScreen';
@@ -17,6 +14,8 @@ import { ProfileSettingsScreen } from '../screens/ProfileSettingsScreen';
 import { RegisterScreen } from '../screens/RegisterScreen';
 import { SplashScreen } from '../screens/SplashScreen';
 import { WelcomeScreen } from '../screens/WelcomeScreen';
+import { AppNavigatorValue, RootRoute } from '../types/navigation';
+import { NavigationContext } from './navigationContext';
 
 type AppNavigatorProps = {
   initialRoute: RootRoute;
@@ -56,10 +55,10 @@ export function AppNavigator({ initialRoute }: AppNavigatorProps) {
                 <Text style={styles.topBarTitle}>{appName}</Text>
                 <Text style={styles.topBarMeta}>
                   {status === 'authenticated'
-                    ? 'Authenticated learner session'
+                    ? 'Learner session active'
                     : status === 'bootstrapping'
-                      ? 'Restoring your session'
-                      : 'Guest session'}
+                      ? 'Restoring learner session'
+                      : 'Guest flow'}
                 </Text>
               </View>
               {routes.length > 1 ? (
@@ -71,8 +70,52 @@ export function AppNavigator({ initialRoute }: AppNavigatorProps) {
           </View>
         ) : null}
         <View style={styles.screen}>{renderRoute(currentRoute)}</View>
+        {showPrimaryNav(currentRoute.name) ? (
+          <View style={styles.bottomBar}>
+            <NavItem
+              label="Home"
+              active={currentRoute.name === 'dashboard'}
+              onPress={() => value.reset({ name: 'dashboard' })}
+            />
+            <NavItem
+              label="Courses"
+              active={currentRoute.name === 'catalog' || currentRoute.name === 'course-details'}
+              onPress={() => value.reset({ name: 'catalog' })}
+            />
+            <NavItem
+              label="Profile"
+              active={currentRoute.name === 'profile'}
+              onPress={() => value.reset({ name: 'profile' })}
+            />
+          </View>
+        ) : null}
       </View>
     </NavigationContext.Provider>
+  );
+}
+
+function showPrimaryNav(routeName: RootRoute['name']) {
+  return (
+    routeName === 'dashboard' ||
+    routeName === 'catalog' ||
+    routeName === 'course-details' ||
+    routeName === 'profile'
+  );
+}
+
+function NavItem({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable onPress={onPress} style={[styles.navItem, active && styles.navItemActive]}>
+      <Text style={[styles.navLabel, active && styles.navLabelActive]}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -108,46 +151,75 @@ function renderRoute(route: RootRoute): ReactNode {
 
 const styles = StyleSheet.create({
   appShell: {
+    backgroundColor: COLORS.lightBackground,
     flex: 1,
-    backgroundColor: colors.background,
   },
   topBar: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.sm,
+    backgroundColor: COLORS.cardBackground,
+    borderBottomColor: COLORS.border,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingBottom: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.xl,
   },
   topBarRow: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: SPACING.sm,
     justifyContent: 'space-between',
-    gap: spacing.sm,
   },
   topBarTitle: {
-    color: colors.primaryDark,
-    fontSize: 20,
+    color: COLORS.primaryText,
+    fontSize: FONT_SIZES.lg,
     fontWeight: '800',
   },
   topBarMeta: {
-    color: colors.textMuted,
-    fontSize: 13,
+    color: COLORS.secondaryText,
+    fontSize: FONT_SIZES.xs,
     marginTop: 2,
   },
   backButton: {
-    borderRadius: 999,
+    backgroundColor: COLORS.navySoft,
+    borderColor: COLORS.borderStrong,
+    borderRadius: RADIUS.pill,
     borderWidth: 1,
-    borderColor: colors.borderStrong,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
   },
   backButtonText: {
-    color: colors.primaryDark,
-    fontSize: 14,
+    color: COLORS.primaryBlue,
+    fontSize: FONT_SIZES.sm,
     fontWeight: '700',
   },
   screen: {
     flex: 1,
+  },
+  bottomBar: {
+    backgroundColor: COLORS.cardBackground,
+    borderTopColor: COLORS.border,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    ...SHADOWS.soft,
+  },
+  navItem: {
+    alignItems: 'center',
+    borderRadius: RADIUS.pill,
+    flex: 1,
+    paddingVertical: SPACING.sm,
+  },
+  navItemActive: {
+    backgroundColor: COLORS.navySoft,
+  },
+  navLabel: {
+    color: COLORS.secondaryText,
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '700',
+  },
+  navLabelActive: {
+    color: COLORS.primaryBlue,
   },
 });
