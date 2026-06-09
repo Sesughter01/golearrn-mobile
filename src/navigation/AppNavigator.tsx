@@ -12,6 +12,7 @@ import { ForgotPasswordScreen } from '../screens/ForgotPasswordScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { ProfileSettingsScreen } from '../screens/ProfileSettingsScreen';
 import { RegisterScreen } from '../screens/RegisterScreen';
+import { SearchScreen } from '../screens/SearchScreen';
 import { SplashScreen } from '../screens/SplashScreen';
 import { WelcomeScreen } from '../screens/WelcomeScreen';
 import { AppNavigatorValue, RootRoute } from '../types/navigation';
@@ -79,7 +80,11 @@ export function AppNavigator({ initialRoute }: AppNavigatorProps) {
             />
             <NavItem
               label="Courses"
-              active={currentRoute.name === 'catalog' || currentRoute.name === 'course-details'}
+              active={
+                currentRoute.name === 'catalog' ||
+                currentRoute.name === 'search' ||
+                currentRoute.name === 'course-details'
+              }
               onPress={() => value.reset({ name: 'catalog' })}
             />
             <NavItem
@@ -98,6 +103,7 @@ function showPrimaryNav(routeName: RootRoute['name']) {
   return (
     routeName === 'dashboard' ||
     routeName === 'catalog' ||
+    routeName === 'search' ||
     routeName === 'course-details' ||
     routeName === 'profile'
   );
@@ -135,6 +141,8 @@ function renderRoute(route: RootRoute): ReactNode {
       return <DashboardScreen />;
     case 'catalog':
       return <CourseCatalogScreen />;
+    case 'search':
+      return <SearchScreen />;
     case 'course-details':
       return <CourseDetailsScreen courseId={route.params.courseId} />;
     case 'course-player':

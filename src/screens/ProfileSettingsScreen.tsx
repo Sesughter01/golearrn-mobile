@@ -67,7 +67,7 @@ export function ProfileSettingsScreen() {
         />
       </View>
       <Text style={styles.note}>
-        Account deletion, device session controls, and notification preferences still depend on backend support.
+        During device QA, confirm this screen shows the restored learner session after app restart, then log out and verify the app returns cleanly to the guest flow.
       </Text>
     </ScreenContainer>
   );

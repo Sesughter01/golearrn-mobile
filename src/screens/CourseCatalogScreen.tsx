@@ -8,6 +8,7 @@ import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { SectionHeader } from '../components/SectionHeader';
+import { PrimaryButton } from '../components/PrimaryButton';
 import { COLORS, FONT_SIZES, RADIUS, SPACING } from '../constants/theme';
 import { useAppNavigation } from '../navigation/navigationContext';
 import { golearrnApi } from '../services/api/golearrnApi';
@@ -60,6 +61,11 @@ export function CourseCatalogScreen() {
         title="Explore GOLEARRN courses"
         subtitle="Browse live catalog results, then continue to course details for the full overview."
       />
+      <PrimaryButton
+        label="Use live search"
+        variant="secondary"
+        onPress={() => navigation.navigate({ name: 'search' })}
+      />
       <View style={styles.searchShell}>
         <TextInput
           onChangeText={setQuery}
@@ -71,7 +77,7 @@ export function CourseCatalogScreen() {
       </View>
       <SectionHeader
         title="Live catalog"
-        subtitle="Search is local on the currently loaded catalog for now. Dedicated server search can be layered into this screen next."
+        subtitle="This field filters the currently loaded catalog locally. Use live search for fresh API-backed results."
       />
       {isLoading ? <LoadingState label="Loading course catalog..." /> : null}
       {!isLoading && error ? (

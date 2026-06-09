@@ -51,7 +51,7 @@ export function LoginScreen() {
       />
       <InfoCard
         title="Release test checklist"
-        description="After signing in on a physical device, close and reopen the app to confirm session restore works, then log out and confirm the app returns to the guest flow."
+        description="After signing in on a physical device, close and reopen the app to confirm session restore works, run a live course search, open a course detail, then log out and confirm the app returns to the guest flow."
       />
       <View style={styles.actions}>
         <TextField

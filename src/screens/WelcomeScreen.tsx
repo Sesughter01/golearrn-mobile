@@ -49,7 +49,7 @@ export function WelcomeScreen() {
       />
       <InfoCard
         title="Internal tester focus"
-        description="On a physical Android device, verify login, app restart, session restore through /auth/me, logout, and catalog/course detail loading before the first APK build is shared."
+        description="On a physical Android device, verify splash, login, app restart, session restore through /auth/me, search, catalog, course detail, profile, and logout before the next APK build is shared."
       />
       <View style={styles.actionGroup}>
         <PrimaryButton label="Log In" onPress={() => navigation.navigate({ name: 'login' })} />

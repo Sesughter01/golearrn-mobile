@@ -108,6 +108,11 @@ export function DashboardScreen() {
           onPress={() => navigation.navigate({ name: 'catalog' })}
         />
         <PrimaryButton
+          label="Search live courses"
+          variant="secondary"
+          onPress={() => navigation.navigate({ name: 'search' })}
+        />
+        <PrimaryButton
           label="View profile"
           variant="secondary"
           onPress={() => navigation.navigate({ name: 'profile' })}

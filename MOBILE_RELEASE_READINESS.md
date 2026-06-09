@@ -127,3 +127,71 @@ Use this checklist before preparing production builds for Android and iOS.
 - [ ] Open the EAS build link from the workflow output.
 - [ ] Download the generated APK from EAS.
 - [ ] Install the APK on a test Android phone.
+
+## v0.1.4 Physical Device QA Checklist
+
+### Passed Checks
+
+- [x] Splash screen code path now renders one GOLEARRN logo asset only, with one tagline and one loading indicator.
+- [x] SecureStore token persistence remains isolated to `src/services/auth/tokenStorage.ts`.
+- [x] Login, register, forgot-password, `/auth/me` bootstrap, and logout flows are wired to live Laravel mobile endpoints.
+- [x] Logout clears local session state and returns the app to the guest flow in code.
+- [x] Course catalog and course detail screens are wired to the live course APIs.
+- [x] Course detail text is sanitized before rendering so raw HTML tags/entities are not shown in the UI.
+- [x] Course thumbnail placeholder fallback is present for missing or failed course images.
+- [x] No bearer token logging was found in the app code during the QA readiness audit.
+- [x] `npx tsc --noEmit` passes on the current codebase.
+
+### Pending Checks
+
+- [ ] Confirm splash layout on a physical Android device after cold start.
+- [ ] Confirm login works with a real learner account on device.
+- [ ] Confirm register works with a real learner account on device.
+- [ ] Confirm forgot-password submission works end-to-end on device.
+- [ ] Confirm app restart restores the authenticated session through `/auth/me` on device.
+- [ ] Confirm logout clears SecureStore on device and returns to the guest flow cleanly.
+- [ ] Confirm course catalog loads successfully from the live API on device.
+- [ ] Confirm course detail loads successfully from the live API on device.
+- [ ] Confirm user-facing API/network errors remain readable during real network failure testing.
+- [ ] Confirm the token never appears in device logs during a physical-device auth pass.
+
+### Known Limitations
+
+- learner dashboard data is still placeholder/fallback
+- enrolled courses API is not implemented yet
+- player/progress API is not implemented yet
+- quiz API is not implemented yet
+- Google mobile login is pending
+- OTP mobile auth is pending
+- payment remains web handoff only
+
+### Backend Dependencies Still Missing
+
+- learner dashboard API
+- enrolled courses API
+- player bootstrap/progress API
+- quiz API
+- native Google mobile sign-in exchange
+- OTP mobile auth flow
+- push notification registration API
+- account deletion endpoint
+- completed QR onboarding/native handoff contract
+
+## Post-v0.1.4 Search UX Readiness
+
+- Dedicated live search screen is now part of the mobile flow and uses `GET /search/courses`.
+- Catalog remains stable and still supports local filtering on already loaded results.
+- Physical-device checks should now include:
+  - Splash
+  - Welcome
+  - Login
+  - Search
+  - Catalog
+  - Course Detail
+  - Profile
+  - Token restore after app restart
+  - Logout
+- Verify live search on device with:
+  - a successful query returning real results
+  - an empty-result query showing the branded empty-search state
+  - a temporary offline/network-failure case showing the retry-friendly error state
