@@ -72,6 +72,9 @@ export function DashboardScreen() {
         title="Continue learning"
         subtitle="This section stays honest about what is live today versus what still needs backend support."
       />
+      <Text style={styles.sectionNote}>
+        Current fallback section: until learner dashboard APIs exist, this area reuses public course data to keep device QA moving.
+      </Text>
       {isLoading ? <LoadingState label="Preparing your learning overview..." /> : null}
       {!isLoading && error ? (
         <ErrorState
@@ -99,9 +102,12 @@ export function DashboardScreen() {
         />
       ) : null}
       <SectionHeader
-        title="Keep learning"
-        subtitle="Browse the live catalog while richer learner-specific recommendations are still pending."
+        title="Future dashboard integration"
+        subtitle="This section marks the boundary between today’s fallback experience and the API-driven learner dashboard we expect later."
       />
+      <Text style={styles.sectionNote}>
+        Future API-driven section: enrolled courses, progress, recommendations, reminders, and learner stats should plug in here when backend endpoints arrive.
+      </Text>
       <View style={styles.actionRow}>
         <PrimaryButton
           label="Explore courses"
@@ -161,6 +167,11 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   note: {
+    color: COLORS.secondaryText,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: 21,
+  },
+  sectionNote: {
     color: COLORS.secondaryText,
     fontSize: FONT_SIZES.sm,
     lineHeight: 21,

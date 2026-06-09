@@ -2,6 +2,7 @@ export const APP_CONFIG = {
   appName: 'GOLEARRN',
   webBaseUrl: 'https://golearrn.com',
   apiBaseUrl: 'https://golearrn.com/api/v1/mobile',
+  requestTimeoutMs: 15000,
 } as const;
 
 export const API_TODOS = {

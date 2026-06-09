@@ -28,20 +28,23 @@ export function CourseDetailsScreen({ courseId }: CourseDetailsScreenProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [imageFailed, setImageFailed] = useState(false);
 
-  useEffect(() => {
+  async function loadCourseDetails() {
     setIsLoading(true);
-    golearrnApi
-      .getCourseDetails(courseId)
-      .then((nextCourse) => {
-        setCourse(nextCourse);
-        setError(null);
-        setImageFailed(false);
-      })
-      .catch((nextError) => {
-        setCourse(null);
-        setError(nextError instanceof Error ? nextError.message : 'Unable to load course details.');
-      })
-      .finally(() => setIsLoading(false));
+    try {
+      const nextCourse = await golearrnApi.getCourseDetails(courseId);
+      setCourse(nextCourse);
+      setError(null);
+      setImageFailed(false);
+    } catch (nextError) {
+      setCourse(null);
+      setError(nextError instanceof Error ? nextError.message : 'Unable to load course details.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadCourseDetails();
   }, [courseId]);
 
   if (!course) {
@@ -56,8 +59,8 @@ export function CourseDetailsScreen({ courseId }: CourseDetailsScreenProps) {
           <ErrorState
             title="We couldn't load this course"
             description={error}
-            actionLabel="Back to catalog"
-            onAction={() => navigation.reset({ name: 'catalog' })}
+            actionLabel="Retry"
+            onAction={loadCourseDetails}
           />
         ) : null}
       </ScreenContainer>
@@ -151,6 +154,8 @@ export function CourseDetailsScreen({ courseId }: CourseDetailsScreenProps) {
         <EmptyState
           title="Curriculum preview is limited"
           description="This course detail response did not include chapter data yet, so the learner still needs the web view for the full outline."
+          actionLabel="Back to catalog"
+          onAction={() => navigation.reset({ name: 'catalog' })}
         />
       ) : null}
       {course.chapters.map((chapter) => (

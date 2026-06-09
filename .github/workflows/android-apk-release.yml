@@ -2,6 +2,15 @@ name: Android APK Release
 
 on:
   workflow_dispatch:
+    inputs:
+      build_profile:
+        description: "EAS build profile to run"
+        required: true
+        default: "preview"
+        type: choice
+        options:
+          - preview
+          - production
   push:
     tags:
       - "v*"
@@ -10,11 +19,12 @@ permissions:
   contents: write
 
 jobs:
-  build-android-preview:
+  build-android:
     runs-on: ubuntu-latest
 
     env:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      BUILD_PROFILE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.build_profile || 'production' }}
 
     steps:
       - name: Checkout repository
@@ -36,25 +46,42 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build APK with EAS
+      - name: Build Android artifact with EAS
         run: |
-          npx eas-cli build -p android --profile preview --non-interactive --wait --json > eas-build.json
+          npx eas-cli build -p android --profile "$BUILD_PROFILE" --non-interactive --wait --json > eas-build.json
           cat eas-build.json
 
-      - name: Download APK artifact
+      - name: Download Android artifact
         run: |
           APK_URL=$(cat eas-build.json | jq -r '.[0].artifacts.buildUrl // .artifacts.buildUrl')
           echo "APK_URL=$APK_URL"
-          curl -L "$APK_URL" -o "golearrn-mobile-${GITHUB_REF_NAME}.apk"
+          if [ "$BUILD_PROFILE" = "production" ]; then
+            curl -L "$APK_URL" -o "golearrn-mobile-${GITHUB_REF_NAME}.aab"
+          else
+            curl -L "$APK_URL" -o "golearrn-mobile-${GITHUB_REF_NAME}.apk"
+          fi
 
-      - name: Create GitHub Release and upload APK
+      - name: Upload preview build artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: golearrn-mobile-${{ github.ref_name }}-${{ env.BUILD_PROFILE }}
+          path: |
+            golearrn-mobile-${{ github.ref_name }}.apk
+            golearrn-mobile-${{ github.ref_name }}.aab
+          if-no-files-found: ignore
+
+      - name: Create GitHub Release and upload Android artifact
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: golearrn-mobile-${{ github.ref_name }}.apk
+          files: |
+            golearrn-mobile-${{ github.ref_name }}.apk
+            golearrn-mobile-${{ github.ref_name }}.aab
           name: GOLEARRN Mobile ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           body: |
-            GOLEARRN Mobile APK release.
+            GOLEARRN Mobile Android release.
 
             Version: ${{ github.ref_name }}
 

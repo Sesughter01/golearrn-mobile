@@ -11,6 +11,7 @@ import { ApiError } from '../services/api/client';
 import { golearrnApi, LoginPayload, RegisterPayload } from '../services/api/golearrnApi';
 import { clearSession, getToken, saveToken } from '../services/auth/tokenStorage';
 import { AuthUser } from '../types/api';
+import { devLog } from '../utils/devLogger';
 import { LearnerSessionStatus } from '../types/navigation';
 
 type AuthContextValue = {
@@ -32,6 +33,20 @@ function formatAuthError(error: unknown): {
   kind: 'email_taken' | 'invalid_credentials' | null;
 } {
   if (error instanceof ApiError) {
+    if (error.isTimeout) {
+      return {
+        message: 'GOLEARRN took too long to respond. Please try again in a moment.',
+        kind: null,
+      };
+    }
+
+    if (error.isNetworkError) {
+      return {
+        message: 'We could not reach GOLEARRN. Check your connection and try again.',
+        kind: null,
+      };
+    }
+
     const firstValidationGroup = error.validationErrors
       ? Object.values(error.validationErrors)[0]
       : null;
@@ -94,7 +109,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
         const currentUser = await golearrnApi.getMe();
         setUser(currentUser);
         setStatus('authenticated');
-      } catch {
+      } catch (error) {
+        devLog('Auth bootstrap fell back to guest flow', {
+          error,
+        });
         await clearSession();
         setUser(null);
         setStatus('guest');
@@ -116,6 +134,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setStatus('authenticated');
       return true;
     } catch (nextError) {
+      devLog('Login failed', { error: nextError });
       const formatted = formatAuthError(nextError);
       setError(formatted.message);
       setErrorKind(formatted.kind);
@@ -139,6 +158,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setStatus('authenticated');
       return true;
     } catch (nextError) {
+      devLog('Registration failed', { error: nextError });
       const formatted = formatAuthError(nextError);
       setError(formatted.message);
       setErrorKind(formatted.kind);
@@ -160,6 +180,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         await golearrnApi.logout();
       }
     } catch (nextError) {
+      devLog('Logout API call failed before local clear', { error: nextError });
       setError(nextError instanceof Error ? nextError.message : 'Unable to log out cleanly.');
     } finally {
       await clearSession();

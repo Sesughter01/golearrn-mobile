@@ -195,3 +195,37 @@ Use this checklist before preparing production builds for Android and iOS.
   - a successful query returning real results
   - an empty-result query showing the branded empty-search state
   - a temporary offline/network-failure case showing the retry-friendly error state
+
+## Physical Android Validation Checklist
+
+- Verify splash shows one GOLEARRN logo, one tagline, and one loading indicator.
+- Verify login succeeds with a real learner account.
+- Verify register succeeds with a new learner account.
+- Verify forgot-password submission shows the neutral success message.
+- Verify app restart restores the learner session through `/auth/me`.
+- Verify logout clears local session state and returns to the guest flow.
+- Verify catalog loads from the live API and retry works after a temporary network interruption.
+- Verify live search returns real results, empty results, and a retry-friendly error state when offline.
+- Verify course detail loads from the live API, does not show raw HTML, and supports retry after a failed request.
+- Verify profile reflects the restored authenticated session after app restart.
+
+## Network Failure Test Checklist
+
+- Put the Android device briefly offline before login and confirm the app shows a connection-focused error message.
+- Repeat with register and forgot-password flows.
+- Interrupt connectivity during catalog loading and confirm retry works.
+- Interrupt connectivity during live search and confirm retry works.
+- Interrupt connectivity during course detail loading and confirm retry works.
+- Simulate a slow connection and confirm timeout messaging is understandable.
+- Confirm no token or password appears in visible error messages or development logs.
+
+## Dashboard Integration Readiness Notes
+
+- The dashboard is intentionally split between current fallback content and future API-driven integration points.
+- `fetchEnrolledCourses()` still uses public course data as a temporary fallback.
+- Future learner dashboard work should replace the fallback section with:
+  - enrolled courses
+  - learner progress
+  - recommendations
+  - reminders or learner-specific summaries
+- No fake learner stats or mock dashboard widgets should be introduced before the real backend contract exists.
