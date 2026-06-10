@@ -13,6 +13,7 @@ import { COLORS, FONT_SIZES, SPACING } from '../constants/theme';
 import { useAppNavigation } from '../navigation/navigationContext';
 import { golearrnApi } from '../services/api/golearrnApi';
 import { CourseSummary } from '../types/course';
+import { MobileSearchMeta } from '../types/api';
 
 const SEARCH_DEBOUNCE_MS = 450;
 
@@ -23,6 +24,7 @@ export function SearchScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchMeta, setSearchMeta] = useState<MobileSearchMeta | null>(null);
   const latestSubmittedQuery = useRef('');
 
   useEffect(() => {
@@ -33,6 +35,7 @@ export function SearchScreen() {
       setError(null);
       setIsLoading(false);
       setHasSearched(false);
+      setSearchMeta(null);
       latestSubmittedQuery.current = '';
       return;
     }
@@ -43,11 +46,14 @@ export function SearchScreen() {
       latestSubmittedQuery.current = trimmedQuery;
 
       try {
-        const nextResults = await golearrnApi.searchCourses(trimmedQuery);
-        setResults(nextResults);
+        const response = await golearrnApi.searchCourses(trimmedQuery);
+        setResults(response.results);
+        setSearchMeta(response.meta ?? null);
+        latestSubmittedQuery.current = response.query || trimmedQuery;
         setHasSearched(true);
       } catch (nextError) {
         setResults([]);
+        setSearchMeta(null);
         setError(
           nextError instanceof Error
             ? nextError.message
@@ -73,11 +79,14 @@ export function SearchScreen() {
     setError(null);
 
     try {
-      const nextResults = await golearrnApi.searchCourses(trimmedQuery);
-      setResults(nextResults);
+      const response = await golearrnApi.searchCourses(trimmedQuery);
+      setResults(response.results);
+      setSearchMeta(response.meta ?? null);
+      latestSubmittedQuery.current = response.query || trimmedQuery;
       setHasSearched(true);
     } catch (nextError) {
       setResults([]);
+      setSearchMeta(null);
       setError(
         nextError instanceof Error
           ? nextError.message
@@ -134,9 +143,16 @@ export function SearchScreen() {
         />
       ) : null}
       {!isLoading && !error && hasSearched ? (
-        <Text style={styles.resultMeta}>
-          {results.length} result{results.length === 1 ? '' : 's'} for "{latestSubmittedQuery.current}"
-        </Text>
+        <View style={styles.metaGroup}>
+          <Text style={styles.resultMeta}>
+            {results.length} result{results.length === 1 ? '' : 's'} for "{latestSubmittedQuery.current}"
+          </Text>
+          {searchMeta?.fallback_mode ? (
+            <Text style={styles.fallbackNote}>
+              Search is currently using standard keyword matching while semantic ranking is unavailable.
+            </Text>
+          ) : null}
+        </View>
       ) : null}
       {!isLoading &&
         !error &&
@@ -154,8 +170,16 @@ export function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
+  metaGroup: {
+    gap: SPACING.xs,
+  },
   resultMeta: {
     color: COLORS.secondaryText,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: 20,
+  },
+  fallbackNote: {
+    color: COLORS.primaryBlue,
     fontSize: FONT_SIZES.sm,
     lineHeight: 20,
   },

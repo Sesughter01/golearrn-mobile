@@ -2,11 +2,12 @@ import { API_TODOS, APP_CONFIG } from '../../constants/config';
 import {
   ApiEnvelope,
   AppConfigResponse,
-  AuthTokenPayload,
   AuthUser,
+  MobileSearchMeta,
   QrResolveResponse,
 } from '../../types/api';
 import { CourseDetails, CourseSummary, CourseTranslationState } from '../../types/course';
+import { devLog } from '../../utils/devLogger';
 import { htmlToPlainText } from '../../utils/html';
 import { apiRequest } from './client';
 
@@ -60,8 +61,28 @@ type MobileCourseDetails = MobileCourseListItem & {
   }> | null;
 };
 
+type MobileAuthEnvelope = {
+  user: AuthUser;
+  token?: string;
+  token_type?: string;
+};
+
+type MobileSearchResponse = {
+  query: string;
+  results: MobileCourseListItem[];
+  search_meta?: MobileSearchMeta;
+};
+
 function unwrapData<T>(envelope: ApiEnvelope<T>) {
   return envelope.data;
+}
+
+function normalizeAuthUser(user: AuthUser | { user?: AuthUser }) {
+  if ('user' in user && user.user) {
+    return user.user;
+  }
+
+  return user as AuthUser;
 }
 
 function mapTranslationState(enabled?: boolean | null): CourseTranslationState {
@@ -164,33 +185,51 @@ export const golearrnApi = {
   },
 
   async searchCourses(query: string) {
-    const response = await apiRequest<MobileCourseListItem[]>(
-      `/search/courses?query=${encodeURIComponent(query)}`,
+    const trimmedQuery = query.trim();
+    devLog('Semantic search request', {
+      method: 'GET',
+      path: '/search/courses',
+      params: { q: trimmedQuery },
+    });
+    const response = await apiRequest<MobileSearchResponse>(
+      `/search/courses?q=${encodeURIComponent(trimmedQuery)}`,
     );
-    return unwrapData(response).map(mapCourseSummary);
+    return {
+      query: unwrapData(response).query,
+      results: unwrapData(response).results.map(mapCourseSummary),
+      meta: unwrapData(response).search_meta,
+    };
   },
 
   async register(payload: RegisterPayload) {
-    const response = await apiRequest<AuthTokenPayload>('/auth/register', {
+    const response = await apiRequest<MobileAuthEnvelope>('/auth/register', {
       method: 'POST',
       body: payload,
     });
-    return unwrapData(response);
+    const data = unwrapData(response);
+    return {
+      token: data.token ?? '',
+      user: normalizeAuthUser(data.user),
+    };
   },
 
   async login(payload: LoginPayload) {
-    const response = await apiRequest<AuthTokenPayload>('/auth/login', {
+    const response = await apiRequest<MobileAuthEnvelope>('/auth/login', {
       method: 'POST',
       body: payload,
     });
-    return unwrapData(response);
+    const data = unwrapData(response);
+    return {
+      token: data.token ?? '',
+      user: normalizeAuthUser(data.user),
+    };
   },
 
   async getMe() {
-    const response = await apiRequest<AuthUser>('/auth/me', {
+    const response = await apiRequest<{ user: AuthUser }>('/auth/me', {
       requiresAuth: true,
     });
-    return unwrapData(response);
+    return normalizeAuthUser(unwrapData(response));
   },
 
   async logout() {
@@ -205,6 +244,7 @@ export const golearrnApi = {
     const response = await apiRequest<{ email: string }>('/auth/forgot-password', {
       method: 'POST',
       body: { email },
+      timeoutMs: 30000,
     });
     return unwrapData(response);
   },

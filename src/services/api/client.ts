@@ -8,6 +8,7 @@ type RequestOptions = {
   body?: unknown;
   headers?: Record<string, string>;
   requiresAuth?: boolean;
+  timeoutMs?: number;
 };
 
 export class ApiError extends Error {
@@ -65,10 +66,11 @@ export async function apiRequest<T>(
     body,
     headers = {},
     requiresAuth = false,
+    timeoutMs = APP_CONFIG.requestTimeoutMs,
   } = options;
   const token = requiresAuth ? await getToken() : null;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.requestTimeoutMs);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   if (requiresAuth && !token) {
     throw new ApiError('Missing auth token', 401);

@@ -55,7 +55,18 @@ This document captures the Laravel backend contracts that are already live for G
 
 - Live: public course catalog and course detail endpoints are available to the mobile app.
 - Live: course search endpoint exists.
-- Mobile search UX now expects `GET /search/courses?query=...` to return real-time API-backed course results without mock fallback.
+- Mobile search UX now uses the semantic search contract:
+  - Endpoint: `GET /search/courses`
+  - Required parameter: `q`
+  - Optional parameter: `limit`
+  - Example: `/search/courses?q=product%20design&limit=12`
+- Live: search responses currently return:
+  - `data.query`
+  - `data.results`
+  - `data.search_meta.status`
+  - `data.search_meta.fallback_mode`
+  - `data.search_meta.match_references`
+- Mobile ignores rich RAG metadata for rendering except for fallback-mode messaging and result ordering.
 - Confirm pagination, category filters, search parameter names, and localization fields.
 - Pending: enrolled courses endpoint and learner dashboard summary payload.
 - Confirm whether mobile can access public course previews without authentication in every environment.

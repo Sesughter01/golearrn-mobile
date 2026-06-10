@@ -1,0 +1,173 @@
+# GOLEARRN Mobile MVP Acceptance Test
+## Version: v0.1.4
+**Date:** 10th , June, 2026
+**Tester:** Charles-Clement Avul
+**Device:** Infinix Hot 30i
+**Android Version:** _____________
+**APK Build:** v0.1.4
+**Backend:** https://golearrn.com/api/v1/mobile
+
+---
+
+# A. Installation & Branding
+
+| Test | Status | Notes |
+|------|:------:|-------|
+| APK installs successfully | ✅ | |
+| App icon displays correctly | ✅ | |
+| Splash screen shows one GOLEARRN logo | ✅ | |
+| Splash logo alignment is correct | ✅ | |
+| Welcome screen branding is correct | ✅ | |
+
+---
+
+# B. Authentication
+
+## Register
+
+| Test | Status | Notes |
+|------|:------:|-------|
+| New account registration works | ✅ | But no OTP is set yet |
+| Existing email shows recovery flow |✅  |  |
+| "Go to Login" works | ✅ | |
+| "Forgot Password?" works | ✅ | But throws , "took too long message even though reset email sent", after reset button is clicked |
+
+## Login
+
+| Test | Status | Notes |
+|------|:------:|-------|
+| Valid login succeeds | ✅ | |
+| Invalid credentials handled correctly | ✅ | |
+| Google-created account helper text displays | ✅ | |
+
+## Forgot Password
+
+| Test | Status | Notes |
+|------|:------:|-------|
+| Forgot password request succeeds | succeeds | but reroutes to web to complete |
+| Success message displayed |⏳ | |
+
+---
+
+# C. Session Persistence
+
+| Test | Status | Notes |
+|------|:------:|-------|
+| Login persists after app restart | ✅ | But with a problem |
+| `/auth/me` restores session | ❌ | username displays undefined even though still in dashboard |
+| User is not forced to log in again | ✅ | |
+
+---
+
+# D. Course Catalog
+
+| Test | Status | Notes |
+|------|:------:|-------|
+| Catalog loads from live API | ✅ | |
+| Loading state displays | ⏳ | |
+| Course cards render correctly | ✅ | |
+| Placeholder image appears when thumbnail missing | ⏳ | |
+
+---
+
+# E. Search
+
+| Test | Status | Notes |
+|------|:------:|-------|
+| Search screen loads | ✅ | |
+| Search returns results | ❌ | says 'q' field required and RAG semantic search not working |
+| Empty state works | ✅ | |
+| Error state works | ⏳ | |
+| Selecting result opens Course Details | ✅ | |
+
+---
+
+# F. Course Details
+
+| Test | Status | Notes |
+|------|:------:|-------|
+| Title displays correctly | ✅ | |
+| Description readable | ✅ | |
+| No raw HTML tags visible | ✅ | |
+| HTML entities decoded properly | ✅ | |
+| Instructor displays | ⏳ | |
+| Category displays | ⏳ | |
+| Pricing displays | ⏳ | |
+| Language displays | ⏳ | |
+| Lesson count displays | ⏳ | |
+
+---
+
+# G. Web Handoff
+
+| Test | Status | Notes |
+|------|:------:|-------|
+| Unenrolled course opens correct web page | ⏳ | |
+
+---
+
+# H. Profile & Logout
+
+| Test | Status | Notes |
+|------|:------:|-------|
+| Profile loads | ⏳ | |
+| Logout works | ⏳ | |
+| Logout clears session | ⏳ | |
+| App returns to guest flow after restart | ⏳ | |
+
+---
+
+# I. Network Failure Handling
+
+| Test | Status | Notes |
+|------|:------:|-------|
+| Catalog error state works | ⏳ | |
+| Search error state works | ⏳ | |
+| Retry button works | ⏳ | |
+| App does not crash offline | ⏳ | |
+
+---
+
+# J. Security Sanity Checks
+
+| Test | Status | Notes |
+|------|:------:|-------|
+| Token never shown in UI | ⏳ | |
+| Token never logged | ⏳ | |
+| Password never logged | ⏳ | |
+| Invalid token returns to guest flow | ⏳ | |
+
+---
+
+# Demo Claims Verification
+
+| Presentation Claim | Verified |
+|--------------------|:--------:|
+| Mobile-first UX | ⏳ |
+| Secure authentication | ⏳ |
+| Persistent sessions | ⏳ |
+| Live search | ⏳ |
+| Beautiful course discovery | ⏳ |
+| Graceful error handling | ⏳ |
+| Web-mobile handoff | ⏳ |
+| API-first architecture | ⏳ |
+| Secure logout | ⏳ |
+
+---
+
+# Summary
+
+| Result | Count |
+|---------|------:|
+| ✅ PASS | 0 |
+| ❌ FAIL | 0 |
+| ⏳ NOT TESTED | 0 |
+
+## Critical Issues
+- None
+
+## Minor Issues
+- None
+
+## Notes
+(Add observations here.)

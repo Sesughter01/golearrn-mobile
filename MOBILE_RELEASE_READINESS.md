@@ -229,3 +229,17 @@ Use this checklist before preparing production builds for Android and iOS.
   - recommendations
   - reminders or learner-specific summaries
 - No fake learner stats or mock dashboard widgets should be introduced before the real backend contract exists.
+
+## QA Findings Resolved After v0.1.4
+
+- Semantic search contract mismatch fixed:
+  - mobile now sends `GET /search/courses?q=...`
+  - mobile now reads `data.results` instead of assuming the response data is a flat array
+- Restored session hydration fixed:
+  - `/auth/me` returns `data.user`
+  - mobile now unwraps the nested user correctly so the dashboard can display the learner name after restart
+- Forgot-password timeout handling improved:
+  - mobile now allows a longer timeout window for reset-email requests
+  - successful reset-link requests should no longer be mislabeled as timeouts during normal slow email delivery
+- Semantic search fallback messaging added:
+  - when backend reports fallback mode, mobile now shows a friendly keyword-search note instead of exposing raw API behavior

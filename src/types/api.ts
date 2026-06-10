@@ -20,6 +20,15 @@ export type AuthUser = {
   id: number | string;
   name: string;
   email: string;
+  avatar_url?: string | null;
+  language_preference?: {
+    locale?: string | null;
+    source?: string | null;
+  } | null;
+  role?: {
+    value?: string | null;
+    label?: string | null;
+  } | null;
 };
 
 export type AuthTokenPayload = {
@@ -32,4 +41,18 @@ export type QrResolveResponse = {
   destination?: string;
   token?: string;
   status?: string;
+};
+
+export type MobileSearchMeta = {
+  status?: string;
+  fallback_mode?: boolean;
+  match_references?: Record<
+    string,
+    {
+      label?: string;
+      snippet?: string;
+      source_type?: string;
+      score?: number;
+    }
+  >;
 };
