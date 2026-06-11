@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 
 import { AppHeader } from '../components/AppHeader';
+import { Badge } from '../components/Badge';
 import { CourseCard } from '../components/CourseCard';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
+import { InfoCard } from '../components/InfoCard';
 import { LoadingState } from '../components/LoadingState';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { ScreenContainer } from '../components/ScreenContainer';
@@ -14,46 +16,72 @@ import { COLORS, FONT_SIZES, SPACING } from '../constants/theme';
 import { useAppNavigation } from '../navigation/navigationContext';
 import { golearrnApi } from '../services/api/golearrnApi';
 import { CourseSummary } from '../types/course';
+import { LearnerDashboard } from '../types/dashboard';
 
 const dashboardBackground = require('../../assets/backgrounds/dashboard-bg.png');
 
 export function DashboardScreen() {
   const navigation = useAppNavigation();
   const { user } = useAuth();
+  const [dashboard, setDashboard] = useState<LearnerDashboard | null>(null);
   const [enrolledCourses, setEnrolledCourses] = useState<CourseSummary[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [libraryError, setLibraryError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  async function loadCourses() {
+  async function loadDashboard() {
     setIsLoading(true);
-    setError(null);
+    setDashboardError(null);
+    setLibraryError(null);
 
-    try {
-      const courses = await golearrnApi.fetchEnrolledCourses();
-      setEnrolledCourses(courses);
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError.message : 'Unable to load courses.');
-      setEnrolledCourses([]);
-    } finally {
-      setIsLoading(false);
+    const [dashboardResult, enrolledResult] = await Promise.allSettled([
+      golearrnApi.fetchLearnerDashboard(),
+      golearrnApi.fetchEnrolledCourses(),
+    ]);
+
+    if (dashboardResult.status === 'fulfilled') {
+      setDashboard(dashboardResult.value);
+    } else {
+      setDashboard(null);
+      setDashboardError(
+        dashboardResult.reason instanceof Error
+          ? dashboardResult.reason.message
+          : 'Unable to load your student dashboard.',
+      );
     }
+
+    if (enrolledResult.status === 'fulfilled') {
+      setEnrolledCourses(enrolledResult.value);
+    } else {
+      setEnrolledCourses([]);
+      setLibraryError(
+        enrolledResult.reason instanceof Error
+          ? enrolledResult.reason.message
+          : 'Unable to load your enrolled courses.',
+      );
+    }
+
+    setIsLoading(false);
   }
 
   useEffect(() => {
-    loadCourses();
+    loadDashboard();
   }, []);
 
-  const featuredCourse = enrolledCourses[0];
+  const continueLearningCourse = dashboard?.continueLearning[0];
+  const learnerName = dashboard?.user?.name ?? user?.name;
+  const learnerStats = dashboard?.stats;
+  const recommendedCourses = dashboard?.recommendedCourses ?? [];
 
   return (
     <ScreenContainer
-      eyebrow="Learner Home"
+      eyebrow="Student Home"
       title="Your learning dashboard"
-      subtitle="A cleaner learner-first home for continuing lessons and exploring live GOLEARRN courses."
+      subtitle="A cleaner student-first home for continuing lessons and exploring live GOLEARRN courses."
     >
       <AppHeader
-        title={user ? `Welcome back, ${user.name}` : 'Welcome back'}
-        subtitle="GOLEARRN keeps your learning close, even while the dedicated learner dashboard API is still pending."
+        title={learnerName ? `Welcome back, ${learnerName}` : 'Welcome back'}
+        subtitle="Your student home now reflects authenticated dashboard data from the live mobile API."
       />
       <ImageBackground
         source={dashboardBackground}
@@ -64,50 +92,114 @@ export function DashboardScreen() {
           <Text style={styles.heroEyebrow}>Internal release preview</Text>
           <Text style={styles.heroTitle}>Your next course is one tap away.</Text>
           <Text style={styles.heroBody}>
-            This hero uses the official GOLEARRN asset pack while learner-specific recommendations and live progress APIs are still pending.
+            Continue learning with real enrolled-course and dashboard data while recommendations remain intentionally minimal for now.
           </Text>
         </View>
       </ImageBackground>
       <SectionHeader
         title="Continue learning"
-        subtitle="This section stays honest about what is live today versus what still needs backend support."
+        subtitle="This section now uses the live student dashboard payload and tolerates courses with no watch history yet."
       />
-      <Text style={styles.sectionNote}>
-        Current fallback section: until learner dashboard APIs exist, this area reuses public course data to keep device QA moving.
-      </Text>
       {isLoading ? <LoadingState label="Preparing your learning overview..." /> : null}
-      {!isLoading && error ? (
+      {!isLoading && dashboardError ? (
         <ErrorState
-          title="We couldn't load your learner view"
-          description={error}
+          title="We couldn't load your student view"
+          description={dashboardError}
           actionLabel="Retry"
-          onAction={loadCourses}
+          onAction={loadDashboard}
         />
       ) : null}
-      {!isLoading && !error && featuredCourse ? (
+      {!isLoading && !dashboardError && learnerStats ? (
+        <View style={styles.statsRow}>
+          <InfoCard
+            accent="soft"
+            title={`${learnerStats.enrolledCourses}`}
+            description="Enrolled courses"
+          />
+          <InfoCard
+            accent="soft"
+            title={`${learnerStats.inProgressCourses}`}
+            description="In progress"
+          />
+          <InfoCard
+            accent="soft"
+            title={`${learnerStats.completedCourses}`}
+            description="Completed"
+          />
+        </View>
+      ) : null}
+      {!isLoading && !dashboardError && continueLearningCourse ? (
         <CourseCard
-          course={featuredCourse}
+          course={continueLearningCourse}
           onPress={() =>
-            navigation.navigate({ name: 'course-details', params: { courseId: featuredCourse.slug } })
+            continueLearningCourse.lastLesson?.id
+              ? navigation.navigate({
+                  name: 'course-player',
+                  params: {
+                    courseId: continueLearningCourse.slug,
+                    lessonId: continueLearningCourse.lastLesson.id,
+                  },
+                })
+              : navigation.navigate({
+                  name: 'course-details',
+                  params: { courseId: continueLearningCourse.slug },
+                })
           }
         />
       ) : null}
-      {!isLoading && !error && !featuredCourse ? (
+      {!isLoading && !dashboardError && !continueLearningCourse ? (
         <EmptyState
-          title="Your enrolled learning feed is still limited"
-          description="The dedicated learner dashboard and enrolled-course APIs are still pending, so this screen falls back to public course data where possible."
+          title="You have not started a course yet"
+          description="Your student dashboard is live, but there is no continue-learning item yet because no lesson history has been recorded."
           imageSource={require('../../assets/placeholders/empty-courses.png')}
           actionLabel="Explore courses"
           onAction={() => navigation.navigate({ name: 'catalog' })}
         />
       ) : null}
       <SectionHeader
-        title="Future dashboard integration"
-        subtitle="This section marks the boundary between today’s fallback experience and the API-driven learner dashboard we expect later."
+        title="Your enrolled library"
+        subtitle="This section now uses the dedicated enrolled-courses endpoint instead of falling back to the public catalog."
       />
-      <Text style={styles.sectionNote}>
-        Future API-driven section: enrolled courses, progress, recommendations, reminders, and learner stats should plug in here when backend endpoints arrive.
-      </Text>
+      {!isLoading && !libraryError && recommendedCourses.length > 0 ? (
+        <InfoCard
+          title="Recommended courses"
+          description={`${recommendedCourses.length} recommendation${recommendedCourses.length === 1 ? '' : 's'} available.`}
+          footer={<Badge label="Recommendations live" tone="blue" />}
+        />
+      ) : null}
+      {!isLoading && !libraryError && recommendedCourses.length === 0 ? (
+        <Text style={styles.sectionNote}>
+          Recommended courses are intentionally empty for now, so the mobile app should not assume recommendation data exists yet.
+        </Text>
+      ) : null}
+      {!isLoading && libraryError ? (
+        <ErrorState
+          title="We couldn't load your enrolled courses"
+          description={libraryError}
+          actionLabel="Retry"
+          onAction={loadDashboard}
+        />
+      ) : null}
+      {!isLoading && !libraryError && enrolledCourses.length === 0 ? (
+        <EmptyState
+          title="Your course library is empty"
+          description="You are authenticated, but there are no enrolled courses in your student library yet."
+          imageSource={require('../../assets/placeholders/empty-courses.png')}
+          actionLabel="Explore courses"
+          onAction={() => navigation.navigate({ name: 'catalog' })}
+        />
+      ) : null}
+      {!isLoading &&
+        !libraryError &&
+        enrolledCourses.map((course) => (
+          <CourseCard
+            key={course.id}
+            course={course}
+            onPress={() =>
+              navigation.navigate({ name: 'course-details', params: { courseId: course.slug } })
+            }
+          />
+        ))}
       <View style={styles.actionRow}>
         <PrimaryButton
           label="Explore courses"
@@ -125,7 +217,7 @@ export function DashboardScreen() {
         />
       </View>
       <Text style={styles.note}>
-        Full learner dashboard, live progress, recommendations, and notifications still require dedicated backend endpoints.
+        Student dashboard and enrolled-library endpoints are now live. Deeper progress, reminders, and recommendation logic can expand on this foundation later.
       </Text>
     </ScreenContainer>
   );
@@ -133,6 +225,9 @@ export function DashboardScreen() {
 
 const styles = StyleSheet.create({
   actionRow: {
+    gap: SPACING.sm,
+  },
+  statsRow: {
     gap: SPACING.sm,
   },
   heroCard: {

@@ -32,12 +32,12 @@ export function LoginScreen() {
     <ScreenContainer
       eyebrow="Authentication"
       title="Log in to GOLEARRN"
-      subtitle="Use your real learner account credentials and continue learning across app restarts with SecureStore-backed session restore."
+      subtitle="Use your real student account credentials and continue learning across app restarts with SecureStore-backed session restore."
     >
       <ImageBackground source={authBackground} imageStyle={styles.heroImage} style={styles.heroCard}>
         <View style={styles.heroOverlay}>
           <LogoMark size="md" variant="dark" />
-          <Text style={styles.heroTitle}>Secure learner sign in</Text>
+          <Text style={styles.heroTitle}>Secure student sign in</Text>
           <Text style={styles.heroBody}>
             Pick up where you left off with SecureStore-backed session restore on supported devices.
           </Text>
@@ -45,8 +45,8 @@ export function LoginScreen() {
       </ImageBackground>
       <InfoCard
         accent="soft"
-        title="Secure learner sign in"
-        description="Sign in with your GOLEARRN learner account. Sanctum bearer tokens are stored securely and restored during app bootstrap."
+        title="Secure student sign in"
+        description="Sign in with your GOLEARRN student account. Sanctum bearer tokens are stored securely and restored during app bootstrap."
         footer={<Badge label="SecureStore session" tone="blue" />}
       />
       <InfoCard
@@ -59,7 +59,7 @@ export function LoginScreen() {
           keyboardType="email-address"
           label="Email"
           onChangeText={setEmail}
-          placeholder="learner@example.com"
+          placeholder="student@example.com"
           value={email}
         />
         <TextField

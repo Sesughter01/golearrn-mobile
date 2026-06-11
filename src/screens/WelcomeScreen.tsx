@@ -20,12 +20,12 @@ export function WelcomeScreen() {
     <ScreenContainer
       eyebrow="Welcome"
       title={`Learn with ${appName}`}
-      subtitle="A cleaner learner-first mobile experience for practical courses, career skills, and flexible learning on the go."
+      subtitle="A cleaner student-first mobile experience for practical courses, career skills, and flexible learning on the go."
     >
       <ImageBackground source={authBackground} imageStyle={styles.heroImage} style={styles.heroCard}>
         <View style={styles.heroOverlay}>
           <LogoMark size="md" variant="dark" />
-          <Badge label="Learner-first mobile" tone="blue" />
+          <Badge label="Student-first mobile" tone="blue" />
           <Text style={styles.heroTitle}>Learn. Upskill. Grow.</Text>
           <Text style={styles.heroBody}>
             Explore career-focused courses, keep learning on your phone, and stay close to the skills that move your work forward.
@@ -34,11 +34,11 @@ export function WelcomeScreen() {
       </ImageBackground>
       <SectionHeader
         title="Why GOLEARRN on mobile?"
-        subtitle="Keep the experience practical, polished, and honest while deeper learner APIs continue to mature."
+        subtitle="Keep the experience practical, polished, and honest while deeper student APIs continue to mature."
       />
       <InfoCard
         accent="soft"
-        title="Built for mobile-first learners"
+        title="Built for mobile-first students"
         description={
           error
             ? `App config could not be refreshed right now: ${error}`

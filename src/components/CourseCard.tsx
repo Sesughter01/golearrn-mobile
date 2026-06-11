@@ -37,6 +37,14 @@ export function CourseCard({
         <Text style={styles.description} numberOfLines={2}>
           {course.description}
         </Text>
+        {typeof course.progressPercent === 'number' ? (
+          <Text style={styles.progressText}>Progress: {course.progressPercent}%</Text>
+        ) : null}
+        {course.lastLesson?.title ? (
+          <Text style={styles.lastLessonText} numberOfLines={1}>
+            Continue with: {course.lastLesson.title}
+          </Text>
+        ) : null}
         <View style={styles.detailRow}>
           {course.category ? <Text style={styles.detail}>{course.category}</Text> : null}
           <Text style={styles.detail}>{course.lessonsCount} lessons</Text>
@@ -104,6 +112,16 @@ const styles = StyleSheet.create({
     color: COLORS.secondaryText,
     fontSize: FONT_SIZES.sm,
     lineHeight: 21,
+  },
+  progressText: {
+    color: COLORS.primaryBlue,
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '700',
+  },
+  lastLessonText: {
+    color: COLORS.secondaryText,
+    fontSize: FONT_SIZES.sm,
+    lineHeight: 20,
   },
   detailRow: {
     flexDirection: 'row',

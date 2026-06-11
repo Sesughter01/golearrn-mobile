@@ -25,6 +25,13 @@ export type CourseSummary = {
   ratingAverage?: number | null;
   priceLabel?: string;
   isFree?: boolean;
+  lastLesson?: {
+    id: string;
+    slug?: string;
+    title: string;
+  } | null;
+  lastAccessedAt?: string | null;
+  enrollmentStatus?: string;
 };
 
 export type CourseDetails = CourseSummary & {

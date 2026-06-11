@@ -76,7 +76,7 @@ export function CourseDetailsScreen({ courseId }: CourseDetailsScreenProps) {
     <ScreenContainer
       eyebrow="Course"
       title={course.title}
-      subtitle="A polished overview that keeps enrollment on the web and helps learners understand what this course offers."
+      subtitle="A polished overview that keeps enrollment on the web and helps students understand what this course offers."
     >
       <AppHeader
         title={course.title}
@@ -148,12 +148,12 @@ export function CourseDetailsScreen({ courseId }: CourseDetailsScreenProps) {
       </View>
       <SectionHeader
         title="Curriculum preview"
-        subtitle="Enrollment and payments still stay on the web. This screen focuses on helping learners understand the course before handoff."
+        subtitle="Enrollment and payments still stay on the web. This screen focuses on helping students understand the course before handoff."
       />
       {!course.chapters.length ? (
         <EmptyState
           title="Curriculum preview is limited"
-          description="This course detail response did not include chapter data yet, so the learner still needs the web view for the full outline."
+          description="This course detail response did not include chapter data yet, so the student still needs the web view for the full outline."
           actionLabel="Back to catalog"
           onAction={() => navigation.reset({ name: 'catalog' })}
         />
@@ -177,7 +177,10 @@ export function CourseDetailsScreen({ courseId }: CourseDetailsScreenProps) {
           if (course.enrolled) {
             navigation.navigate({
               name: 'course-player',
-              params: { courseId: course.slug, lessonId: course.chapters[0]?.lessons[0]?.id },
+              params: {
+                courseId: course.slug,
+                lessonId: course.lastLesson?.id ?? course.chapters[0]?.lessons[0]?.id,
+              },
             });
             return;
           }

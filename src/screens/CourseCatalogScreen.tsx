@@ -55,7 +55,7 @@ export function CourseCatalogScreen() {
     <ScreenContainer
       eyebrow="Catalog"
       title="Discover your next course"
-      subtitle="A cleaner GOLEARRN learning catalog with live course data, clearer badges, and a more learner-friendly browsing flow."
+      subtitle="A cleaner GOLEARRN learning catalog with live course data, clearer badges, and a more student-friendly browsing flow."
     >
       <AppHeader
         title="Explore GOLEARRN courses"

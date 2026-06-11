@@ -46,14 +46,14 @@ export function RegisterScreen() {
           <LogoMark size="md" variant="dark" />
           <Text style={styles.heroTitle}>Start learning with GOLEARRN</Text>
           <Text style={styles.heroBody}>
-            Create your learner account, then continue into the live course catalog from the same mobile session.
+            Create your student account, then continue into the live course catalog from the same mobile session.
           </Text>
         </View>
       </ImageBackground>
       <InfoCard
         accent="soft"
-        title="Create your learner account"
-        description="Registration targets the live mobile auth endpoint and keeps the experience simple for learner-first onboarding."
+        title="Create your student account"
+        description="Registration targets the live mobile auth endpoint and keeps the experience simple for student-first onboarding."
         footer={<Badge label="OTP hidden on mobile" tone="amber" />}
       />
       <View style={styles.actions}>
@@ -68,7 +68,7 @@ export function RegisterScreen() {
           keyboardType="email-address"
           label="Email"
           onChangeText={setEmail}
-          placeholder="learner@example.com"
+          placeholder="student@example.com"
           value={email}
         />
         <TextField

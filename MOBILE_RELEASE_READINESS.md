@@ -51,7 +51,7 @@ Use this checklist before preparing production builds for Android and iOS.
 ## Google Play Store Assets
 
 - [ ] Prepare Play Store icon, feature graphic, screenshots, and listing copy.
-- [ ] Confirm category, content rating, and learner-facing support contact details.
+- [ ] Confirm category, content rating, and student-facing support contact details.
 - [ ] Review store policy impact if any external checkout handoff exists.
 
 ## Apple App Store Assets
@@ -70,7 +70,7 @@ Use this checklist before preparing production builds for Android and iOS.
 
 - [ ] Publish a production terms URL.
 - [ ] Surface the terms inside the app and store listings.
-- [ ] Confirm learner consent flow if required during registration.
+- [ ] Confirm student consent flow if required during registration.
 
 ## Account Deletion Support
 
@@ -82,7 +82,7 @@ Use this checklist before preparing production builds for Android and iOS.
 
 - [ ] Choose analytics tooling.
 - [ ] Choose crash reporting tooling.
-- [ ] Define event taxonomy for learner onboarding, catalog usage, and lesson engagement.
+- [ ] Define event taxonomy for student onboarding, catalog usage, and lesson engagement.
 
 ## Deep Links And Universal Links
 
@@ -95,7 +95,7 @@ Use this checklist before preparing production builds for Android and iOS.
 
 - [ ] Choose Expo Notifications or a native push strategy.
 - [ ] Confirm backend device registration flow.
-- [ ] Define notification categories and learner preference controls.
+- [ ] Define notification categories and student preference controls.
 
 ## Payment Policy Review
 
@@ -145,8 +145,8 @@ Use this checklist before preparing production builds for Android and iOS.
 ### Pending Checks
 
 - [ ] Confirm splash layout on a physical Android device after cold start.
-- [ ] Confirm login works with a real learner account on device.
-- [ ] Confirm register works with a real learner account on device.
+- [ ] Confirm login works with a real student account on device.
+- [ ] Confirm register works with a real student account on device.
 - [ ] Confirm forgot-password submission works end-to-end on device.
 - [ ] Confirm app restart restores the authenticated session through `/auth/me` on device.
 - [ ] Confirm logout clears SecureStore on device and returns to the guest flow cleanly.
@@ -157,9 +157,6 @@ Use this checklist before preparing production builds for Android and iOS.
 
 ### Known Limitations
 
-- learner dashboard data is still placeholder/fallback
-- enrolled courses API is not implemented yet
-- player/progress API is not implemented yet
 - quiz API is not implemented yet
 - Google mobile login is pending
 - OTP mobile auth is pending
@@ -167,9 +164,6 @@ Use this checklist before preparing production builds for Android and iOS.
 
 ### Backend Dependencies Still Missing
 
-- learner dashboard API
-- enrolled courses API
-- player bootstrap/progress API
 - quiz API
 - native Google mobile sign-in exchange
 - OTP mobile auth flow
@@ -199,10 +193,10 @@ Use this checklist before preparing production builds for Android and iOS.
 ## Physical Android Validation Checklist
 
 - Verify splash shows one GOLEARRN logo, one tagline, and one loading indicator.
-- Verify login succeeds with a real learner account.
-- Verify register succeeds with a new learner account.
+- Verify login succeeds with a real student account.
+- Verify register succeeds with a new student account.
 - Verify forgot-password submission shows the neutral success message.
-- Verify app restart restores the learner session through `/auth/me`.
+- Verify app restart restores the student session through `/auth/me`.
 - Verify logout clears local session state and returns to the guest flow.
 - Verify catalog loads from the live API and retry works after a temporary network interruption.
 - Verify live search returns real results, empty results, and a retry-friendly error state when offline.
@@ -221,14 +215,10 @@ Use this checklist before preparing production builds for Android and iOS.
 
 ## Dashboard Integration Readiness Notes
 
-- The dashboard is intentionally split between current fallback content and future API-driven integration points.
-- `fetchEnrolledCourses()` still uses public course data as a temporary fallback.
-- Future learner dashboard work should replace the fallback section with:
-  - enrolled courses
-  - learner progress
-  - recommendations
-  - reminders or learner-specific summaries
-- No fake learner stats or mock dashboard widgets should be introduced before the real backend contract exists.
+- The dashboard now consumes `GET /dashboard` for student identity, continue-learning content, and stats.
+- `fetchEnrolledCourses()` now consumes `GET /courses/enrolled` and no longer falls back to the public catalog.
+- `recommended_courses` may legitimately be empty, so the UI should continue treating recommendations as optional.
+- Player/progress endpoints are now available, so the next dashboard-facing backend additions should focus on reliable progress refresh behavior, playback resume depth, and reminder-style summaries.
 
 ## QA Findings Resolved After v0.1.4
 
@@ -237,9 +227,13 @@ Use this checklist before preparing production builds for Android and iOS.
   - mobile now reads `data.results` instead of assuming the response data is a flat array
 - Restored session hydration fixed:
   - `/auth/me` returns `data.user`
-  - mobile now unwraps the nested user correctly so the dashboard can display the learner name after restart
+  - mobile now unwraps the nested user correctly so the dashboard can display the student name after restart
 - Forgot-password timeout handling improved:
   - mobile now allows a longer timeout window for reset-email requests
   - successful reset-link requests should no longer be mislabeled as timeouts during normal slow email delivery
 - Semantic search fallback messaging added:
   - when backend reports fallback mode, mobile now shows a friendly keyword-search note instead of exposing raw API behavior
+- Student dashboard integration updated:
+  - mobile dashboard now consumes `GET /dashboard`
+  - mobile enrolled library now consumes `GET /courses/enrolled`
+  - the old public-course fallback for student dashboard data has been removed

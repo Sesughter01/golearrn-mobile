@@ -56,9 +56,9 @@ export function AppNavigator({ initialRoute }: AppNavigatorProps) {
                 <Text style={styles.topBarTitle}>{appName}</Text>
                 <Text style={styles.topBarMeta}>
                   {status === 'authenticated'
-                    ? 'Learner session active'
+                    ? 'Student session active'
                     : status === 'bootstrapping'
-                      ? 'Restoring learner session'
+                      ? 'Restoring student session'
                       : 'Guest flow'}
                 </Text>
               </View>

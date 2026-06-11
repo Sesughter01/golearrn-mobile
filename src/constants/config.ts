@@ -11,10 +11,10 @@ export const API_TODOS = {
   googleSignIn: 'TODO: Define mobile-safe Google sign-in flow and backend exchange contract.',
   qrOnboarding: 'TODO: Define QR registration handoff from /qr/resolve into native mobile deep links.',
   courseCatalog: 'TODO: Confirm live /courses and /search/courses filtering, pagination, and localization contract.',
-  courseEnrollment: 'TODO: Confirm learner enrollment and learner library endpoints beyond public course listing.',
+  courseEnrollment: 'TODO: Confirm student enrollment and student library endpoints beyond public course listing.',
   coursePlayer: 'TODO: Confirm chapters, lessons, assets, progress, and access control endpoints.',
   translationState: 'TODO: Confirm translation status values and partial content delivery shape.',
   ragSearch: 'TODO: Confirm search contract, response latency expectations, and fallbacks.',
   pushNotifications: 'TODO: Define device registration endpoint and notification event schema.',
-  accountDeletion: 'TODO: Confirm learner account deletion endpoint and compliance flow.',
+  accountDeletion: 'TODO: Confirm student account deletion endpoint and compliance flow.',
 } as const;

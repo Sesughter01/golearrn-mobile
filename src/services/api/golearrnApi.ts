@@ -6,7 +6,22 @@ import {
   MobileSearchMeta,
   QrResolveResponse,
 } from '../../types/api';
+import {
+  ContinueLearningItem,
+  EnrolledCourseItem,
+  LearnerDashboard,
+  LearnerDashboardStats,
+} from '../../types/dashboard';
 import { CourseDetails, CourseSummary, CourseTranslationState } from '../../types/course';
+import {
+  CoursePlayerChapter,
+  CoursePlayerData,
+  CoursePlayerLesson,
+  CoursePlayerNavigation,
+  CoursePlayerPlayback,
+  CoursePlayerProgress,
+  CourseProgressEventPayload,
+} from '../../types/player';
 import { devLog } from '../../utils/devLogger';
 import { htmlToPlainText } from '../../utils/html';
 import { apiRequest } from './client';
@@ -39,12 +54,19 @@ type MobileCourseListItem = {
   rating?: { average?: number | null } | null;
   lesson_count?: number | null;
   enrollment_count?: number | null;
-  language?: { name?: string | null } | null;
-  translation?: { ai_translation_enabled?: boolean | null } | null;
+  language?: { id?: number | string | null; name?: string | null } | null;
+  translation?: { ai_translation_enabled?: boolean | null; state?: string | null } | null;
   enrollment_status?: string | null;
   level?: string | null;
   description?: string | null;
   chapter_count?: number | null;
+  progress_percent?: number | null;
+  last_lesson?: {
+    id?: number | string | null;
+    slug?: string | null;
+    title?: string | null;
+  } | null;
+  last_accessed_at?: string | null;
 };
 
 type MobileCourseDetails = MobileCourseListItem & {
@@ -73,6 +95,65 @@ type MobileSearchResponse = {
   search_meta?: MobileSearchMeta;
 };
 
+type MobileLearnerDashboardResponse = {
+  user?: AuthUser | null;
+  continue_learning?: MobileCourseListItem[] | null;
+  recommended_courses?: MobileCourseListItem[] | null;
+  stats?: {
+    enrolled_courses?: number | null;
+    in_progress_courses?: number | null;
+    completed_courses?: number | null;
+  } | null;
+};
+
+type MobilePlayerLessonItem = {
+  id?: number | string | null;
+  slug?: string | null;
+  title?: string | null;
+  type?: 'video' | 'reading' | 'quiz' | string | null;
+  duration?: string | null;
+  duration_seconds?: number | null;
+  completed?: boolean | null;
+  is_completed?: boolean | null;
+  resume_position_seconds?: number | null;
+  translation?: { state?: string | null; ai_translation_enabled?: boolean | null } | null;
+};
+
+type MobilePlayerChapterItem = {
+  id?: number | string | null;
+  title?: string | null;
+  translation?: { state?: string | null; ai_translation_enabled?: boolean | null } | null;
+  lessons?: MobilePlayerLessonItem[] | null;
+};
+
+type MobilePlayerResponse = {
+  course?: MobileCourseDetails | null;
+  access?: {
+    can_play?: boolean | null;
+    enrolled?: boolean | null;
+    requires_web_handoff?: boolean | null;
+    web_url?: string | null;
+  } | null;
+  progress?: {
+    percent?: number | null;
+    completed_lessons?: number | null;
+    total_lessons?: number | null;
+    resume_position_seconds?: number | null;
+  } | null;
+  current_lesson?: MobilePlayerLessonItem | null;
+  navigation?: {
+    previous_lesson_id?: number | string | null;
+    next_lesson_id?: number | string | null;
+  } | null;
+  playback?: {
+    resume_position_seconds?: number | null;
+    duration_seconds?: number | null;
+    media_url?: string | null;
+    media_type?: string | null;
+  } | null;
+  chapters?: MobilePlayerChapterItem[] | null;
+} & MobileCourseDetails;
+
 function unwrapData<T>(envelope: ApiEnvelope<T>) {
   return envelope.data;
 }
@@ -85,8 +166,22 @@ function normalizeAuthUser(user: AuthUser | { user?: AuthUser }) {
   return user as AuthUser;
 }
 
-function mapTranslationState(enabled?: boolean | null): CourseTranslationState {
-  if (enabled) {
+function mapTranslationState(
+  translation?: MobileCourseListItem['translation'],
+): CourseTranslationState {
+  const explicitState = translation?.state?.toLowerCase();
+
+  if (
+    explicitState === 'original' ||
+    explicitState === 'pending' ||
+    explicitState === 'partial' ||
+    explicitState === 'translated' ||
+    explicitState === 'failed'
+  ) {
+    return explicitState;
+  }
+
+  if (translation?.ai_translation_enabled) {
     return 'translated';
   }
 
@@ -129,7 +224,7 @@ function mapCourseSummary(course: MobileCourseListItem): CourseSummary {
     lessonsCount: course.lesson_count ?? 0,
     level: course.level ?? 'All Levels',
     language: course.language?.name ?? 'English',
-    translationState: mapTranslationState(course.translation?.ai_translation_enabled),
+    translationState: mapTranslationState(course.translation),
     enrolled,
     thumbnailUrl: course.thumbnail_url ?? null,
     category: course.category?.name ?? undefined,
@@ -137,6 +232,16 @@ function mapCourseSummary(course: MobileCourseListItem): CourseSummary {
     ratingAverage: course.rating?.average ?? null,
     priceLabel: price.label,
     isFree: price.isFree,
+    progressPercent: course.progress_percent ?? undefined,
+    lastLesson: course.last_lesson
+      ? {
+          id: String(course.last_lesson.id ?? ''),
+          slug: course.last_lesson.slug ?? undefined,
+          title: course.last_lesson.title ?? 'Continue learning',
+        }
+      : null,
+    lastAccessedAt: course.last_accessed_at ?? null,
+    enrollmentStatus: course.enrollment_status ?? undefined,
   };
 }
 
@@ -165,6 +270,145 @@ function mapCourseDetails(course: MobileCourseDetails): CourseDetails {
                 : 'video',
           })) ?? [],
       })) ?? [],
+  };
+}
+
+function normalizeLessonType(type?: string | null): 'video' | 'reading' | 'quiz' {
+  if (type === 'reading' || type === 'quiz' || type === 'video') {
+    return type;
+  }
+
+  return 'video';
+}
+
+function formatDurationLabel(duration?: string | null, durationSeconds?: number | null) {
+  if (duration) {
+    return duration;
+  }
+
+  if (typeof durationSeconds === 'number' && durationSeconds > 0) {
+    const minutes = Math.max(1, Math.round(durationSeconds / 60));
+    return `${minutes} min`;
+  }
+
+  return 'TBD';
+}
+
+function mapPlayerLesson(lesson: MobilePlayerLessonItem, fallbackIndex: number): CoursePlayerLesson {
+  return {
+    id: String(lesson.id ?? `lesson-${fallbackIndex + 1}`),
+    slug: lesson.slug ?? undefined,
+    title: htmlToPlainText(lesson.title) || `Lesson ${fallbackIndex + 1}`,
+    type: normalizeLessonType(lesson.type),
+    duration: formatDurationLabel(lesson.duration, lesson.duration_seconds),
+    durationSeconds: lesson.duration_seconds ?? null,
+    completed: lesson.completed ?? lesson.is_completed ?? false,
+    resumePositionSeconds: lesson.resume_position_seconds ?? 0,
+    translationState: mapTranslationState(lesson.translation),
+  };
+}
+
+function mapPlayerChapters(chapters?: MobilePlayerChapterItem[] | null): CoursePlayerChapter[] {
+  return (
+    chapters?.map((chapter, chapterIndex) => ({
+      id: String(chapter.id ?? `chapter-${chapterIndex + 1}`),
+      title: htmlToPlainText(chapter.title) || `Chapter ${chapterIndex + 1}`,
+      translationState: mapTranslationState(chapter.translation),
+      lessons:
+        chapter.lessons?.map((lesson, lessonIndex) =>
+          mapPlayerLesson(lesson, chapterIndex * 100 + lessonIndex),
+        ) ?? [],
+    })) ?? []
+  );
+}
+
+function mapPlayerProgress(
+  progress?: MobilePlayerResponse['progress'],
+  course?: MobileCourseDetails | null,
+): CoursePlayerProgress {
+  const totalLessonsFromCourse = course?.lesson_count ?? 0;
+
+  return {
+    percent: progress?.percent ?? course?.progress_percent ?? 0,
+    completedLessons: progress?.completed_lessons ?? 0,
+    totalLessons: progress?.total_lessons ?? totalLessonsFromCourse,
+    resumePositionSeconds: progress?.resume_position_seconds ?? 0,
+  };
+}
+
+function mapPlayerNavigation(
+  navigation?: MobilePlayerResponse['navigation'],
+): CoursePlayerNavigation {
+  return {
+    previousLessonId:
+      navigation?.previous_lesson_id != null ? String(navigation.previous_lesson_id) : null,
+    nextLessonId: navigation?.next_lesson_id != null ? String(navigation.next_lesson_id) : null,
+  };
+}
+
+function mapPlayerPlayback(
+  playback?: MobilePlayerResponse['playback'],
+  currentLesson?: MobilePlayerLessonItem | null,
+): CoursePlayerPlayback {
+  return {
+    resumePositionSeconds:
+      playback?.resume_position_seconds ?? currentLesson?.resume_position_seconds ?? 0,
+    durationSeconds: playback?.duration_seconds ?? currentLesson?.duration_seconds ?? null,
+    mediaUrl: playback?.media_url ?? null,
+    mediaType: playback?.media_type ?? currentLesson?.type ?? null,
+  };
+}
+
+function mapCoursePlayerData(data: MobilePlayerResponse): CoursePlayerData {
+  const coursePayload = data.course ?? data;
+  const course = mapCourseSummary(coursePayload);
+  const chapters = mapPlayerChapters(data.chapters ?? coursePayload.chapters);
+  const progress = mapPlayerProgress(data.progress, coursePayload);
+  const currentLesson = data.current_lesson
+    ? mapPlayerLesson(data.current_lesson, 0)
+    : chapters.flatMap((chapter) => chapter.lessons)[0] ?? null;
+
+  return {
+    course: {
+      ...course,
+      progressPercent: progress.percent,
+    },
+    access: {
+      canPlay: data.access?.can_play ?? true,
+      enrolled: data.access?.enrolled ?? course.enrolled ?? false,
+      requiresWebHandoff: data.access?.requires_web_handoff ?? false,
+      webUrl: data.access?.web_url ?? null,
+    },
+    progress,
+    currentLesson,
+    navigation: mapPlayerNavigation(data.navigation),
+    playback: mapPlayerPlayback(data.playback, data.current_lesson),
+    chapters,
+  };
+}
+
+function mapLearnerDashboardStats(
+  stats?: MobileLearnerDashboardResponse['stats'],
+): LearnerDashboardStats | null {
+  if (!stats) {
+    return null;
+  }
+
+  return {
+    enrolledCourses: stats.enrolled_courses ?? 0,
+    inProgressCourses: stats.in_progress_courses ?? 0,
+    completedCourses: stats.completed_courses ?? 0,
+  };
+}
+
+function mapLearnerDashboard(data: MobileLearnerDashboardResponse): LearnerDashboard {
+  return {
+    user: data.user ?? null,
+    continueLearning: (data.continue_learning ?? []).map(
+      (course) => mapCourseSummary(course) as ContinueLearningItem,
+    ),
+    recommendedCourses: (data.recommended_courses ?? []).map(mapCourseSummary),
+    stats: mapLearnerDashboardStats(data.stats),
   };
 }
 
@@ -199,6 +443,13 @@ export const golearrnApi = {
       results: unwrapData(response).results.map(mapCourseSummary),
       meta: unwrapData(response).search_meta,
     };
+  },
+
+  async fetchLearnerDashboard() {
+    const response = await apiRequest<MobileLearnerDashboardResponse>('/dashboard', {
+      requiresAuth: true,
+    });
+    return mapLearnerDashboard(unwrapData(response));
   },
 
   async register(payload: RegisterPayload) {
@@ -267,9 +518,49 @@ export const golearrnApi = {
   },
 
   async fetchEnrolledCourses() {
-    // TODO: Replace this fallback when a learner dashboard or enrolled courses API is available.
-    const courses = await this.getCourses();
-    return courses.filter((course) => course.enrolled);
+    const response = await apiRequest<MobileCourseListItem[]>('/courses/enrolled', {
+      requiresAuth: true,
+    });
+    return unwrapData(response).map((course) => mapCourseSummary(course) as EnrolledCourseItem);
+  },
+
+  async getCoursePlayer(slug: string, lessonId?: number | string) {
+    const query = lessonId ? `?lesson_id=${encodeURIComponent(lessonId)}` : '';
+    const response = await apiRequest<MobilePlayerResponse>(
+      `/courses/${encodeURIComponent(slug)}/player${query}`,
+      {
+        requiresAuth: true,
+      },
+    );
+    return mapCoursePlayerData(unwrapData(response));
+  },
+
+  async saveLessonProgress(
+    slug: string,
+    lessonId: number | string,
+    payload: CourseProgressEventPayload,
+  ) {
+    const response = await apiRequest<Record<string, unknown>>(
+      `/courses/${encodeURIComponent(slug)}/lessons/${encodeURIComponent(lessonId)}/progress`,
+      {
+        method: 'POST',
+        requiresAuth: true,
+        body: payload,
+      },
+    );
+    return unwrapData(response);
+  },
+
+  async fetchCoursePlayer(slug: string, lessonId?: string) {
+    return this.getCoursePlayer(slug, lessonId);
+  },
+
+  async saveCourseLessonProgress(
+    slug: string,
+    lessonId: string,
+    payload: CourseProgressEventPayload,
+  ) {
+    return this.saveLessonProgress(slug, lessonId, payload);
   },
 
   async fetchTranslatedCourseContent(courseId: string) {

@@ -25,19 +25,19 @@ export function ProfileSettingsScreen() {
     <ScreenContainer
       eyebrow="Profile"
       title="Profile and settings"
-      subtitle="Account basics, support links, app details, and a simple learner-safe logout flow."
+      subtitle="Account basics, support links, app details, and a simple student-safe logout flow."
     >
       <AppHeader
         title="Your GOLEARRN profile"
-        subtitle="Clean learner settings for this first internal release."
+        subtitle="Clean student settings for this first internal release."
       />
       <InfoCard
         accent="soft"
-        title="Current learner mode"
+        title="Current student mode"
         description={
           user
             ? `${user.name} · ${user.email}`
-            : 'This screen is ready for authenticated learner data once /auth/me is available during bootstrap.'
+            : 'This screen is ready for authenticated student data once /auth/me is available during bootstrap.'
         }
         footer={
           <Badge
@@ -67,7 +67,7 @@ export function ProfileSettingsScreen() {
         />
       </View>
       <Text style={styles.note}>
-        During device QA, confirm this screen shows the restored learner session after app restart, then log out and verify the app returns cleanly to the guest flow.
+        During device QA, confirm this screen shows the restored student session after app restart, then log out and verify the app returns cleanly to the guest flow.
       </Text>
     </ScreenContainer>
   );

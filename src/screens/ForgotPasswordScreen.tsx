@@ -66,7 +66,7 @@ export function ForgotPasswordScreen() {
           keyboardType="email-address"
           label="Email"
           onChangeText={setEmail}
-          placeholder="learner@example.com"
+          placeholder="student@example.com"
           value={email}
         />
         {error ? <Text style={styles.error}>{error}</Text> : null}
